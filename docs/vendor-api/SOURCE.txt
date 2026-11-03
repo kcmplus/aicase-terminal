@@ -1,0 +1,4 @@
+Supplier archive: phonecase-diy-api.zip
+Received: 2026-11-03
+SHA256: 68041c1cba38ad65fe7697eba4ca7070457e8a56efd0b683ff1434ebe3892005
+Unmodified reference files; not bundled or executed.

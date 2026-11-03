@@ -1,0 +1,2 @@
+# Keep supplier reference files byte-for-byte as delivered.
+docs/vendor-api/*.ts -whitespace
