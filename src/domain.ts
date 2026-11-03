@@ -1,3 +1,4 @@
+import {orderQueue,type QueueOrder} from './queue';
 export type Language='zh-CN'|'en-US';
 export type ConnectionState='disconnected'|'connecting'|'connected'|'online';
 export type Snapshot={
@@ -5,10 +6,11 @@ export type Snapshot={
   contact:string;locked:boolean;showEntry:boolean;
   devices:Record<'printer'|'gripper'|'netproxy',ConnectionState>;
   modelCount:number;stockCount:number;printStatus:string|null;progress:number|null;
+  orders:QueueOrder[];ordersAvailable:boolean;currentOrder:QueueOrder|null;
 };
-export type Command='get_machine_info'|'get_device_info'|'get_setting_options'|'get_setting_option_config'|'get_stock_list'|'get_print_order'|'get_print_progress'|'ui_inited';
+export type Command='get_machine_info'|'get_device_info'|'get_setting_options'|'get_setting_option_config'|'get_stock_list'|'get_print_order'|'get_print_progress'|'get_order_list'|'ui_inited';
 export interface Bridge{invoke(command:Command):Promise<unknown>;listen(event:string,callback:(payload?:unknown)=>void):Promise<()=>void>;}
-export const events=['loading_finished','machine_info_changed','device_state_changed','setting_options_changed','setting_configs_changed','setting_lock_changed','stock_info_changed','product_info_changed','order_info_changed','order_print_started','order_print_finished','order_print_status','order_print_progress','print_warning'] as const;
+export const events=['loading_finished','machine_info_changed','device_state_changed','setting_options_changed','setting_configs_changed','setting_lock_changed','stock_info_changed','product_info_changed','order_created','order_info_changed','order_pay_failed','order_print_started','order_print_finished','order_print_status','order_print_progress','print_warning'] as const;
 const states=new Set(['disconnected','connecting','connected','online']);
 const printStates=new Set(['idle','grabbing','grab_success','grab_failed','printing','print_success','print_failed','delivering','deliver_success','deliver_failed']);
 function record(value:unknown):Record<string,unknown>{if(!value||typeof value!=='object'||Array.isArray(value))throw Error('invalid-data');return value as Record<string,unknown>;}
@@ -25,11 +27,12 @@ export function snapshot(raw:Record<string,unknown>):Snapshot{
   if(!Array.isArray(raw.stock)||raw.stock.length>10000)throw Error('invalid-data');
   let stockCount=0;const models=new Set<string>(),slots=new Set<number>();
   for(const value of raw.stock){const row=record(value),slot=count(row.slot),quantity=count(row.count),disabled=bool(row.disabled),model=text(row.model_id,100);if(slots.has(slot))throw Error('invalid-data');slots.add(slot);if(!disabled&&quantity>0){if(!model)throw Error('invalid-data');stockCount+=quantity;models.add(model);}}
-  let printStatus:string|null=null,progress:number|null=null;
-  if(raw.order!==null){const order=record(raw.order);printStatus=text(order.print_status);if(!printStates.has(printStatus))throw Error('invalid-data');}
+  let printStatus:string|null=null,progress:number|null=null,currentOrder:QueueOrder|null=null;
+  if(raw.order!==null){const order=record(raw.order);printStatus=text(order.print_status);if(!printStates.has(printStatus))throw Error('invalid-data');try{currentOrder=orderQueue([order])[0];}catch{/* Status remains useful without an identifiable order. */}}
   if(raw.progress!==null&&printStatus!==null){const data=record(raw.progress);if(typeof data.progress!=='number'||!Number.isFinite(data.progress)||data.progress<0||data.progress>100)throw Error('invalid-data');progress=Math.round(data.progress);}
-  // Discard setting passwords, payment amounts, customer/order IDs and local paths.
-  return {deviceId,shopId,storefront:text(machine.h5_base_url,2048),name:text(options.device_name),number:text(options.device_num),contact:bool(machine.is_show_contact_tel)?text(machine.contact_tel,80):'',locked:bool(options.is_lock),showEntry:bool(features.show_h5_entry),devices,modelCount:models.size,stockCount,printStatus,progress};
+  // Discard setting passwords, payment amounts and print originals; retain effect previews only.
+  let orders:QueueOrder[]=[],ordersAvailable=true;try{orders=orderQueue(raw.orders);}catch{ordersAvailable=false;}
+  return {deviceId,shopId,storefront:text(machine.h5_base_url,2048),name:text(options.device_name),number:text(options.device_num),contact:bool(machine.is_show_contact_tel)?text(machine.contact_tel,80):'',locked:bool(options.is_lock),showEntry:bool(features.show_h5_entry),devices,modelCount:models.size,stockCount,printStatus,progress,orders,ordersAvailable,currentOrder};
 }
 export function designUrl(data:Pick<Snapshot,'storefront'|'deviceId'|'shopId'>,language:Language,override=''):string{
   id(data.deviceId);id(data.shopId);

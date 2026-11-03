@@ -8,11 +8,12 @@ export class TerminalController{
   private subscriptions:Array<()=>void>=[];private timer:ReturnType<typeof setInterval>|undefined;
   private view:View={data:null,loading:true,error:null,updatedAt:null};
   private warning:string|null=null;
+  private retryTimer:ReturnType<typeof setTimeout>|undefined;
   constructor(private bridge:Bridge,private render:(view:View)=>void,private interval=15000,private deadline=10000){}
   private publish(view:View){if(!this.stopped){this.view=view;this.render({...view,error:view.error||this.warning});}}
   async start(){
     if(this.stopped||this.starting||this.initialized)return;
-    this.starting=true;
+    clearTimeout(this.retryTimer);this.starting=true;
     try{
       // Register before ui_inited: the host may immediately emit loading_finished.
       for(const event of events){
@@ -23,7 +24,7 @@ export class TerminalController{
             this.publish(this.view);
             void this.refresh();
           }else if(event==='order_print_progress')void this.refresh();
-          else this.invalidate();
+          else this.invalidate(event.startsWith('order_'));
         });
         let accepted=false;
         try{const off=await timeout(pending,this.deadline);accepted=true;if(this.stopped){off();return;}this.subscriptions.push(off);}
@@ -37,12 +38,13 @@ export class TerminalController{
     }catch{
       this.subscriptions.splice(0).forEach(off=>off());
       this.publish({data:null,loading:false,error:'connection-failed',updatedAt:null});
+      if(!this.stopped)this.retryTimer=setTimeout(()=>{void this.start();},this.interval);
     }finally{this.starting=false;}
   }
   async retry(){if(this.initialized)await this.refresh();else await this.start();}
-  private invalidate(){
+  private invalidate(keepDisplay=false){
     this.generation++;
-    this.publish({data:null,loading:true,error:null,updatedAt:null});
+    this.publish({data:keepDisplay?this.view.data:null,loading:true,error:null,updatedAt:keepDisplay?this.view.updatedAt:null});
     if(this.initialized)void this.refresh();
   }
   async refresh(){
@@ -54,9 +56,19 @@ export class TerminalController{
         current=this.generation;
         try{
           const invoke=(command:Parameters<Bridge['invoke']>[0])=>timeout(this.bridge.invoke(command),this.deadline);
-          const [machine,device,options,features,stock,order,progress]=await Promise.all([
-            invoke('get_machine_info'),invoke('get_device_info'),invoke('get_setting_options'),invoke('get_setting_option_config'),invoke('get_stock_list'),invoke('get_print_order'),invoke('get_print_progress')]);
-          const data=snapshot({machine,device,options,features,stock,order,progress});
+          // Progress has no trade_no. Bracket the read to avoid attaching it to a different job.
+          const printRead=async()=>{
+            const before=await invoke('get_print_order');
+            const progress=await invoke('get_print_progress');
+            const order=await invoke('get_print_order');
+            const first=(before as {trade_no?:unknown}|null)?.trade_no;
+            const last=(order as {trade_no?:unknown}|null)?.trade_no;
+            return {order,progress:typeof first==='string'&&first===last?progress:null};
+          };
+          const [machine,device,options,features,stock,printing,orders]=await Promise.all([
+            invoke('get_machine_info'),invoke('get_device_info'),invoke('get_setting_options'),invoke('get_setting_option_config'),invoke('get_stock_list'),printRead(),invoke('get_order_list').catch(()=>null)]);
+          const {order,progress}=printing;
+          const data=snapshot({machine,device,options,features,stock,order,progress,orders});
           if(current===this.generation)this.publish({data,loading:false,error:null,updatedAt:Date.now()});
         }catch{
           if(current===this.generation)this.publish({data:null,loading:false,error:'connection-failed',updatedAt:null});
@@ -64,5 +76,5 @@ export class TerminalController{
       }while(!this.stopped&&current!==this.generation);
     }finally{this.running=false;}
   }
-  dispose(){this.stopped=true;this.generation++;clearInterval(this.timer);this.subscriptions.splice(0).forEach(off=>off());}
+  dispose(){this.stopped=true;this.generation++;clearInterval(this.timer);clearTimeout(this.retryTimer);this.subscriptions.splice(0).forEach(off=>off());}
 }

@@ -80,3 +80,12 @@ test('print warning immediately blocks QR and persists across reads until explic
   host.emit('print_warning',{warning:'none'});assert.equal(views.at(-1)?.error,null);
  }finally{app.dispose();}
 });
+
+test('a passive terminal automatically reconnects after initialization failure',async()=>{
+ const host=new Host();const listen=host.listen.bind(host);let failed=false,latest:View|undefined;
+ host.listen=async(event,callback)=>{if(!failed){failed=true;throw Error('host not ready');}return listen(event,callback);};
+ const app=new TerminalController(host,view=>{latest=view;},10,50);
+ try{await app.start();assert.equal(latest?.error,'connection-failed');await until(()=>latest?.data?.deviceId==='401');assert.equal(latest?.error,null);}
+ finally{app.dispose();}
+ assert.equal(host.listeners.size,0);
+});
