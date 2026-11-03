@@ -53,7 +53,7 @@ digest = hashlib.sha256(output.read_bytes()).hexdigest()
 print(f'Package: {output}\nSHA256: {digest}\nSize: {output.stat().st_size} bytes')
 if os.environ.get('GITHUB_OUTPUT'):
     with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:
-        stream.write(f'path={output.relative_to(root).as_posix()}\nsha256={digest}\n')
+        stream.write(f'path={output.relative_to(root).as_posix()}\nname={output.name}\nsha256={digest}\n')
 if os.environ.get('GITHUB_STEP_SUMMARY'):
     with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as stream:
         stream.write(f'## Frontend package\n\n`{name}`\n\nSHA256: `{digest}`\n\n'

@@ -1,5 +1,7 @@
 # POPOMO Terminal
 
+[下载编译包 · Releases](https://github.com/kcmplus/aicase-terminal/releases) · [构建记录 · Actions](https://github.com/kcmplus/aicase-terminal/actions/workflows/build-terminal.yml)
+
 POPOMO 设备端独立前端项目。设备屏只读展示扫码入口、订单预览图、待确认列表及打印/出货进度；顾客在手机端完成操作，长队列自动轮播。
 
 本仓库供供应商集成到其 **Tauri 2 / Rust 宿主工程**，由供应商打包、签名与分发。收到的 `phonecase-diy-api.zip` 只有 TypeScript API 封装，没有 Rust 工程、驱动或安装包；因此本仓库不伪造 `src-tauri` 或硬件实现。构建产物是 `dist/`，不是 Windows 安装包。
@@ -37,7 +39,14 @@ npm run dev
 
 已配置 [Build terminal frontend](.github/workflows/build-terminal.yml)：推送 `main`、`v*` 标签、向 main 提交 PR 或手动运行时，执行锁文件安装、接口一致性检查、测试、前端编译，上传一个 ZIP 文件，保留 30 天。
 
-下载位置：GitHub 仓库 → Actions → Build terminal frontend → 成功运行 → Artifacts。私有仓库的下载者需要对应访问权限；也可自行下载后交给供应商。流程只生成构建产物，不自动发布 Release、不部署设备、不替供应商生成安装包。
+下载位置：
+
+- 版本交付包：仓库首页右侧 **Releases** → 版本 → **Assets** → `aicase-terminal-web-*.zip`。不要选 GitHub 自动生成的 `Source code` 源码包。
+- 日常构建包：**Actions → Build terminal frontend → 成功运行 → Artifacts**，保留 30 天。Actions 附件下载可能需要登录 GitHub；公开 Release 附件可直接下载。
+
+推送 `v*` 标签时，构建与测试成功后自动创建 Release，发布同一构建的 ZIP 并核对 SHA256。普通 main 推送、PR、手动构建只保存 Artifacts，不创建版本。当前仓库公开，Release 附件也公开；流程不部署设备、不替供应商生成安装包。
+
+发布版本时先确保 `package.json` 和 `package-lock.json` 的版本一致并提交，再执行 `git tag v0.1.0`、`git push origin v0.1.0`（以后替换为对应新版本）。标签必须等于 `v` 加 package.json 版本；带 `-beta.1` 等后缀的版本标为 Pre-release。已发布版本不覆盖，如需修改请发新版本。
 
 可在仓库 Settings → Secrets and variables → Actions → Variables 配置公开的 `VITE_STOREFRONT_URL` 和 `VITE_DEFAULT_LANGUAGE`；手动运行也可指定。商城地址未配置时读取宿主 `h5_base_url`，语言默认 en-US。不要填写设备 key 或支付密钥。手动输入商城地址留空时仍会使用仓库变量；若希望完全使用宿主地址，需要清空该仓库变量。
 
