@@ -42,6 +42,8 @@ GitHub Actions 的 `Build supplier integration package` 使用 Node.js 24，分�
 
 ## 供应商如何打包
 
+Tauri 依赖按原始 `phonecase-diy-gy.zip` 的主工程 `pnpm-lock.yaml` 固定：前端 API `2.11.1`、CLI `2.11.4`、文件插件 `2.5.1`、HTTP 插件 `2.5.9`、opener 插件 `2.5.4`。主项目和集成项目的 npm 锁文件保持这些版本，避免迁移包管理器时自动升级。Rust 的 `Cargo.toml` / `Cargo.lock` 版本沿用供应商原包（Tauri `2.11.5`）；设备应用版本仍为 `2.0.1`，与我方交付标签 `v0.x` 分开管理。
+
 1. 在隔离的集成分支解压交付包，保留供应商现有的核心、驱动和设备配置。
 2. 目录关系保持 `phonecase-diy-gy/src-tauri/Cargo.toml` 的 `../../phonecase-core` 可解析；核心的其他本地依赖也必须完整。
 3. 包内已有 `dist/`。如需修改外层管理 UI，在 `phonecase-diy-gy/` 执行 `npm ci` 和 `npm run build`。POPOMO 首页已经以本次交付的 ES 模块包含在 `src/popomo/`，不需要访问我方仓库才能编译外层工程。

@@ -16,10 +16,10 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
-    "@tauri-apps/api": "^2.11.0",
-    "@tauri-apps/plugin-fs": "~2.5.1",
-    "@tauri-apps/plugin-http": "~2.5.9",
-    "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/api": "2.11.1",
+    "@tauri-apps/plugin-fs": "2.5.1",
+    "@tauri-apps/plugin-http": "2.5.9",
+    "@tauri-apps/plugin-opener": "2.5.4",
     "@types/hammerjs": "^2.0.46",
     "@unocss/preset-rem-to-px": "^66.7.0",
     "@vicons/fluent": "^0.13.0",
@@ -47,7 +47,7 @@
     "@openvanilla/mcbopomofoweb": "file:src/skins/components/McBopomofoWeb"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2",
+    "@tauri-apps/cli": "2.11.4",
     "@types/pixi.js": "^5.0.0",
     "@types/qrcode": "^1.5.6",
     "@types/sprintf": "^0.1.2",
