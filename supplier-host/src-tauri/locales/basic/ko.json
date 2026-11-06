@@ -1,0 +1,46 @@
+{
+    "pay_type": {
+        "wechat": "위챗페이",
+        "alipay": "알리페이",
+        "pickup": "픽업 코드",
+        "card": "카드 결제",
+        "free": "무료 결제",
+        "reprint": "재인쇄 결제",
+        "duit_now_pay": "말레이시아 DuitNow 페이",
+        "prompt_pay": "태국 프롬프트페이",
+        "cash": "현금 결제",
+        "scan2_pay": "대만 Scan2Pay",
+        "wechat_global": "국제판 위챗페이",
+        "pay_pay": "일본 PayPay",
+        "ele_pay": "일본 엘리페이",
+        "magnati": "마그나티",
+        "prompt_pay_ksher": "Ksher 프롬프트페이",
+        "stripe": "스트라이프",
+        "pay_way": "캄보디아 페이웨이",
+        "line_pay": "라인페이",
+        "pix_pay": "브라질 PIX 페이",
+        "game_card": "게임 카드 결제",
+        "duitku_qris": "QRIS 결제",
+        "unknown": "알 수 없는 결제"
+    },
+    "print_status": {
+        "idle": "결제 대기 중",
+        "grabbing": "픽업 중",
+        "grab_success": "픽업 성공",
+        "grab_failed": "픽업 실패",
+        "printing": "인쇄 중",
+        "print_success": "인쇄 성공",
+        "print_failed": "인쇄 실패",
+        "delivering": "인출 중",
+        "deliver_success": "인출 성공",
+        "deliver_failed": "인출 실패"
+    },
+    "order_status": {
+        "idle": "지금 결제",
+        "waiting": "대기 중",
+        "printing": "인쇄 중"
+    },
+    "errcode": {
+        "order_image_save_failed": ""
+    }
+}

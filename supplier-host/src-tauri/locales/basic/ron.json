@@ -1,0 +1,46 @@
+{
+    "pay_type": {
+        "wechat": "WeChat Pay",
+        "alipay": "alipay",
+        "pickup": "Cod de răscumpărare",
+        "card": "Plată cu cardul",
+        "free": "Gratuit",
+        "reprint": "Retipărire",
+        "duit_now_pay": "DuitNow",
+        "prompt_pay": "PromptPay",
+        "cash": "Numerar",
+        "scan2_pay": "Scan2Pay Taiwan",
+        "wechat_global": "WeChat Global",
+        "pay_pay": "PayPay",
+        "ele_pay": "ElePay",
+        "magnati": "Magnati",
+        "prompt_pay_ksher": "Ksher Thailanda",
+        "stripe": "Stripe",
+        "pay_way": "PayWay",
+        "line_pay": "LinePay",
+        "pix_pay": "PIX Brazilia",
+        "game_card": "Card de joc",
+        "duitku_qris": "Plată QRIS",
+        "unknown": "Necunoscut"
+    },
+    "print_status": {
+        "idle": "În așteptare",
+        "grabbing": "Preluare",
+        "grab_success": "Preluare reușită",
+        "grab_failed": "Preluare eșuată",
+        "printing": "Imprimare",
+        "print_success": "Imprimare reușită",
+        "print_failed": "Imprimare eșuată",
+        "delivering": "Scoatere",
+        "deliver_success": "Scoatere reușită",
+        "deliver_failed": "Eșec la scoatere"
+    },
+    "order_status": {
+        "idle": "Plătește acum",
+        "waiting": "În coadă",
+        "printing": "Imprimare"
+    },
+    "errcode": {
+        "order_image_save_failed": ""
+    }
+}

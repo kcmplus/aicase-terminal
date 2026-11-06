@@ -1,0 +1,46 @@
+{
+    "pay_type": {
+        "wechat": "微信支付",
+        "alipay": "支付宝支付",
+        "pickup": "核销码",
+        "card": "刷卡支付",
+        "free": "免支付",
+        "reprint": "重打支付",
+        "duit_now_pay": "马来实时支付",
+        "prompt_pay": "泰国实时支付",
+        "cash": "现金支付",
+        "scan2_pay": "台湾Scan2Pay",
+        "wechat_global": "国际版微信支付",
+        "pay_pay": "日本支付",
+        "ele_pay": "日本聚合支付",
+        "magnati": "Magnati",
+        "prompt_pay_ksher": "泰国Ksher支付",
+        "stripe": "Stripe",
+        "pay_way": "柬埔寨支付",
+        "line_pay": "LinePay",
+        "pix_pay": "巴西PIX支付",
+        "game_card": "游戏卡支付",
+        "duitku_qris": "QRIS支付",
+        "unknown": "未知支付"
+    },
+    "print_status": {
+        "idle": "待处理",
+        "grabbing": "抓取中",
+        "grab_success": "抓取成功",
+        "grab_failed": "抓取失败",
+        "printing": "打印中",
+        "print_success": "打印成功",
+        "print_failed": "打印失败",
+        "delivering": "出货中",
+        "deliver_success": "出货成功",
+        "deliver_failed": "出货失败"
+    },
+    "order_status": {
+        "idle": "立即支付",
+        "waiting": "排队中",
+        "printing": "打印中"
+    },
+    "errcode": {
+        "order_image_save_failed": ""
+    }
+}

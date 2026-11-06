@@ -1,0 +1,46 @@
+{
+    "pay_type": {
+        "wechat": "WeChat Pay",
+        "alipay": "alipay",
+        "pickup": "Code de récupération",
+        "card": "Paiement par carte",
+        "free": "Gratuit",
+        "reprint": "Réimpression",
+        "duit_now_pay": "DuitNow",
+        "prompt_pay": "PromptPay",
+        "cash": "Espèces",
+        "scan2_pay": "Scan2Pay Taïwan",
+        "wechat_global": "WeChat Global",
+        "pay_pay": "PayPay",
+        "ele_pay": "ElePay",
+        "magnati": "Magnati",
+        "prompt_pay_ksher": "Ksher Thaïlande",
+        "stripe": "Stripe",
+        "pay_way": "PayWay",
+        "line_pay": "LinePay",
+        "pix_pay": "PIX Brésil",
+        "game_card": "Carte de jeu",
+        "duitku_qris": "Paiement QRIS",
+        "unknown": "Inconnu"
+    },
+    "print_status": {
+        "idle": "En attente",
+        "grabbing": "Prélèvement",
+        "grab_success": "Prélèvement réussi",
+        "grab_failed": "Échec du prélèvement",
+        "printing": "En impression",
+        "print_success": "Impression réussie",
+        "print_failed": "Échec de l'impression",
+        "delivering": "Sortant",
+        "deliver_success": "Sortie réussie",
+        "deliver_failed": "Échec de la sortie"
+    },
+    "order_status": {
+        "idle": "Payer maintenant",
+        "waiting": "En file d'attente",
+        "printing": "En impression"
+    },
+    "errcode": {
+        "order_image_save_failed": ""
+    }
+}

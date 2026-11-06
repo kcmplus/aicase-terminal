@@ -1,0 +1,46 @@
+{
+    "pay_type": {
+        "wechat": "WeChat Pay",
+        "alipay": "alipay",
+        "pickup": "ລະຫັດຮັບສິນຄ້າ",
+        "card": "ຈ່າຍດ້ວຍບັດ",
+        "free": "ບໍ່ເສຍຄ່າ",
+        "reprint": "ພິມຄືນ",
+        "duit_now_pay": "DuitNow",
+        "prompt_pay": "PromptPay",
+        "cash": "ເງິນສົດ",
+        "scan2_pay": "Scan2Pay ໄຕ້ຫວັນ",
+        "wechat_global": "WeChat Global",
+        "pay_pay": "PayPay",
+        "ele_pay": "ElePay",
+        "magnati": "Magnati",
+        "prompt_pay_ksher": "Ksher ໄທ",
+        "stripe": "Stripe",
+        "pay_way": "PayWay",
+        "line_pay": "LinePay",
+        "pix_pay": "PIX ບຣາຊິນ",
+        "game_card": "ບັດເກມ",
+        "duitku_qris": "ການຊຳລະເງິນ QRIS",
+        "unknown": "ບໍ່ຮູ້ຈັກ"
+    },
+    "print_status": {
+        "idle": "ລໍຖ້າດຳເນີນການ",
+        "grabbing": "ກຳລັງຢຶດ",
+        "grab_success": "ຢຶດສຳເລັດ",
+        "grab_failed": "ຢຶດລົ້ມເຫຼວ",
+        "printing": "ກຳລັງພິມ",
+        "print_success": "ພິມສຳເລັດ",
+        "print_failed": "ພິມລົ້ມເຫຼວ",
+        "delivering": "ກຳລັງສົ່ງອອກ",
+        "deliver_success": "ສົ່ງອອກສຳເລັດ",
+        "deliver_failed": "ສົ່ງອອກລົ້ມເຫຼວ"
+    },
+    "order_status": {
+        "idle": "ຈ່າຍດຽວນີ້",
+        "waiting": "ຢູ່ໃນຄິວ",
+        "printing": "ກຳລັງພິມ"
+    },
+    "errcode": {
+        "order_image_save_failed": ""
+    }
+}

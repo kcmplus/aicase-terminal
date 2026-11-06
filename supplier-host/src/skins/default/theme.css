@@ -1,0 +1,93 @@
+/* @import '../japan/fonts-core.css'; */
+
+/*
+ * 从右到左时只移动大模块，模块内部保持原来的左右。
+ * .module-row 的直接子块对调；.layout-anchor 用 start/end 换到对侧。
+ * 这两类元素的子级恢复从左到右，内部按钮、间距、弹窗不换边。
+ */
+html[dir="rtl"] body {
+    direction: ltr;
+}
+
+html[dir="rtl"] .module-row,
+html[dir="rtl"] .layout-anchor {
+    direction: rtl;
+}
+
+html[dir="rtl"] .module-row > *,
+html[dir="rtl"] .layout-anchor > * {
+    direction: ltr;
+}
+
+* {
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+}
+
+/* 禁止整页橡皮筋拖拽：一屏内容无滚动条时，手指向四周拖仍会带动页面、松手回弹 */
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
+#app {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
+/* 主题内 button 作为可点击控件时的基础重置，便于从 div 迁移 */
+button {
+    appearance: none;
+    -webkit-appearance: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    text-align: inherit;
+}
+
+button:disabled {
+    cursor: not-allowed;
+}
+
+/**
+ * default 主题全局按下反馈。
+ * `.is-pressed` 由 App.vue / pressFeedback.ts 在 pointerdown 时添加。
+ * 用 opacity 代替 filter，避免按下时触发整层重绘。
+ * 不写 transition 简写，避免打断组件自身宽高动画。
+ */
+.is-pressed {
+    scale: 0.94 !important;
+    opacity: 0.86 !important;
+    transition-property: scale, opacity;
+    transition-duration: 0.08s;
+    transition-timing-function: ease-out;
+}
+
+button:not(:disabled):active,
+[role='button']:active,
+.toolbar-btn:active:not(:disabled),
+.control-btn:active:not(.disabled),
+.start-btn:active,
+[data-press]:active {
+    scale: 0.94;
+    opacity: 0.86;
+}
+
+/* 仅当前节点带 data-no-press 时关闭（子按钮仍可有反馈） */
+[data-no-press].is-pressed,
+[data-no-press]:active,
+.control-btn.disabled.is-pressed,
+button:disabled.is-pressed {
+    scale: 1 !important;
+    opacity: 1 !important;
+}

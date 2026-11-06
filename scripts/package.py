@@ -44,8 +44,10 @@ with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as archive:
         'Unzip into a dedicated frontend directory. Point the supplier Tauri build.frontendDist to it.\n'
         'This is a compiled HTML/CSS/JS frontend, not a standalone application or installer.\n'
         'The supplier must provide Rust commands, event permissions, scoped image access, and packaging.\n'
-        'The terminal UI is read-only. Business payment/arrival verification still needs integration.\n'
-        'If VITE_STOREFRONT_URL was not set at build time, configure the host h5_base_url.\n')
+        'The customer-facing terminal is display-only. H5 and its server own confirmation and handoff.\n'
+        'The terminal never calls select_order_payment and does not use POPOMO_TERMINAL_API credentials.\n'
+        'Cloud order creation, image access and real printing still require on-device acceptance testing.\n'
+        'The QR entry is fixed to https://aicase.chunpat.cc/; device/shop IDs still come from the host.\n')
 with zipfile.ZipFile(output) as archive:
     assert archive.testzip() is None
     assert 'index.html' in archive.namelist()

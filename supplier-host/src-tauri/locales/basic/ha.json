@@ -1,0 +1,46 @@
+{
+  "pay_type": {
+    "wechat": "Biyan WeChat",
+    "alipay": "Biyan Alipay",
+    "pickup": "Lambar Pickup",
+    "card": "Biyan Kati",
+    "free": "Biyan Kyauta",
+    "reprint": "Biyan Sake Buga",
+    "duit_now_pay": "Biyan DuitNow na Malaysia",
+    "prompt_pay": "Biyan PromptPay na Thailand",
+    "cash": "Biyan Kuɗi",
+    "scan2_pay": "Biyan Scan2Pay na Taiwan",
+    "wechat_global": "Biyan WeChat na Duniya",
+    "pay_pay": "Biyan PayPay na Japan",
+    "ele_pay": "Biyan ElePay na Japan",
+    "magnati": "Magnati",
+    "prompt_pay_ksher": "Biyan Ksher PromptPay",
+    "stripe": "Stripe",
+    "pay_way": "Biyan PayWay na Cambodia",
+    "line_pay": "Biyan LinePay",
+    "pix_pay": "Biyan PIX na Brazil",
+    "game_card": "Biyan Katin Wasa",
+    "duitku_qris": "Biyan QRIS",
+    "unknown": "Biyan da ba a sani ba"
+  },
+  "print_status": {
+    "idle": "Babu aiki",
+    "grabbing": "Ana karba",
+    "grab_success": "An karba nasara",
+    "grab_failed": "Karba ta gaza",
+    "printing": "Ana buga",
+    "print_success": "Buga nasara",
+    "print_failed": "Buga ta gaza",
+    "delivering": "Ana isarwa",
+    "deliver_success": "Isarwa nasara",
+    "deliver_failed": "Isarwa ta gaza"
+  },
+  "order_status": {
+    "idle": "Biya yanzu",
+    "waiting": "A jere",
+    "printing": "Ana buga"
+  },
+  "errcode": {
+    "order_image_save_failed": ""
+  }
+}

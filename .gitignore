@@ -7,3 +7,11 @@ dist/
 *.log
 src-tauri/target/
 release/
+phonecase-diy-gy.zip
+supplier-host/src/popomo/
+supplier-host/src-tauri/gen/
+supplier-host/src-tauri/target/
+supplier-host/src-tauri/backup/
+*.key
+test-results/
+playwright-report/

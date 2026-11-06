@@ -1,0 +1,46 @@
+{
+  "pay_type": {
+    "wechat": "وی چاٹ ادائیگی",
+    "alipay": "ایلی پے",
+    "pickup": "پک اپ کوڈ",
+    "card": "کارڈ ادائیگی",
+    "free": "مفت ادائیگی",
+    "reprint": "دوبارہ پرنٹ ادائیگی",
+    "duit_now_pay": "ملائیشیا ڈوئٹ ناؤ ادائیگی",
+    "prompt_pay": "تھائی لینڈ پرامپٹ ادائیگی",
+    "cash": "نقد ادائیگی",
+    "scan2_pay": "تائیوان سکین 2 ادائیگی",
+    "wechat_global": "وی چاٹ انٹرنیشنل ادائیگی",
+    "pay_pay": "جاپان پے پے",
+    "ele_pay": "جاپان ایلے پے",
+    "magnati": "میگناتی",
+    "prompt_pay_ksher": "کشر پرامپٹ ادائیگی",
+    "stripe": "سٹرائپ",
+    "pay_way": "کمبوڈیا پے وے",
+    "line_pay": "لائن پے",
+    "pix_pay": "برازیل پکس ادائیگی",
+    "game_card": "گیم کارڈ ادائیگی",
+    "duitku_qris": "QRIS ادائیگی",
+    "unknown": "نامعلوم ادائیگی"
+  },
+  "print_status": {
+    "idle": "بیکار",
+    "grabbing": "پکڑ رہا ہے",
+    "grab_success": "پکڑنا کامیاب",
+    "grab_failed": "پکڑنا ناکام",
+    "printing": "پرنٹنگ",
+    "print_success": "پرنٹ کامیاب",
+    "print_failed": "پرنٹ ناکام",
+    "delivering": "ترسیل",
+    "deliver_success": "ترسیل کامیاب",
+    "deliver_failed": "ترسیل ناکام"
+  },
+  "order_status": {
+    "idle": "ابھی ادا کریں",
+    "waiting": "قطار میں",
+    "printing": "پرنٹنگ"
+  },
+  "errcode": {
+    "order_image_save_failed": ""
+  }
+}

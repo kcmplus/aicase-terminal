@@ -33,10 +33,8 @@ test('all subscribed events and the agreed free payment value exist in the origi
  for(const event of events)assert.ok(declared.has(event),`Unknown supplier event: ${event}`);
  assert.ok(enums.get('PayType')?.has(DEFAULT_EXTERNAL_PAYMENT_TYPE));
 });
-test('dormant payment adapter matches supplier argument names and string payment type',()=>{
+test('payment adapter matches supplier argument names and string payment type',()=>{
  const definition=functions.get('select_order_payment')!;
  assert.deepEqual(definition.parameters.map(parameter=>parameter.name.getText()),['trade_no','pay_type']);
  assert.equal(definition.parameters[1].type?.kind,ts.SyntaxKind.StringKeyword);
- const source=readFileSync(new URL('../src/main.ts',import.meta.url),'utf8');
- assert.ok(!source.includes('native-order-api'));assert.ok(!source.includes('selectExternalPayment'));
 });

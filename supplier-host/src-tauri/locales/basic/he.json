@@ -1,0 +1,46 @@
+{
+    "pay_type": {
+        "wechat": "WeChat Pay",
+        "alipay": "alipay",
+        "pickup": "קוד מימוש",
+        "card": "תשלום בכרטיס",
+        "free": "חינם",
+        "reprint": "הדפסה חוזרת",
+        "duit_now_pay": "DuitNow",
+        "prompt_pay": "PromptPay",
+        "cash": "מזומן",
+        "scan2_pay": "Scan2Pay טייוואן",
+        "wechat_global": "WeChat Global",
+        "pay_pay": "PayPay",
+        "ele_pay": "ElePay",
+        "magnati": "Magnati",
+        "prompt_pay_ksher": "Ksher תאילנד",
+        "stripe": "Stripe",
+        "pay_way": "PayWay",
+        "line_pay": "LinePay",
+        "pix_pay": "PIX ברזיל",
+        "game_card": "כרטיס משחק",
+        "duitku_qris": "תשלום QRIS",
+        "unknown": "לא ידוע"
+    },
+    "print_status": {
+        "idle": "ממתין",
+        "grabbing": "בשליפה",
+        "grab_success": "שליפה הצליחה",
+        "grab_failed": "שליפה נכשלה",
+        "printing": "בהדפסה",
+        "print_success": "הדפסה הצליחה",
+        "print_failed": "הדפסה נכשלה",
+        "delivering": "בהוצאה",
+        "deliver_success": "הוצאה הצליחה",
+        "deliver_failed": "הוצאה נכשלה"
+    },
+    "order_status": {
+        "idle": "שלם עכשיו",
+        "waiting": "בתור",
+        "printing": "בהדפסה"
+    },
+    "errcode": {
+        "order_image_save_failed": ""
+    }
+}

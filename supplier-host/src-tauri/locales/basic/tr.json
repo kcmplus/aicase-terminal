@@ -1,0 +1,46 @@
+{
+  "pay_type": {
+    "wechat": "WeChat Ödeme",
+    "alipay": "Alipay Ödeme",
+    "pickup": "Alım Kodu",
+    "card": "Kart Ödeme",
+    "free": "Ücretsiz Ödeme",
+    "reprint": "Yeniden Baskı Ödeme",
+    "duit_now_pay": "Malezya DuitNow Ödeme",
+    "prompt_pay": "Tayland PromptPay Ödeme",
+    "cash": "Nakit Ödeme",
+    "scan2_pay": "Tayvan Scan2Pay Ödeme",
+    "wechat_global": "WeChat Uluslararası Ödeme",
+    "pay_pay": "Japonya PayPay Ödeme",
+    "ele_pay": "Japonya ElePay Ödeme",
+    "magnati": "Magnati",
+    "prompt_pay_ksher": "Ksher PromptPay Ödeme",
+    "stripe": "Stripe",
+    "pay_way": "Kamboçya PayWay Ödeme",
+    "line_pay": "LinePay Ödeme",
+    "pix_pay": "Brezilya PIX Ödeme",
+    "game_card": "Oyun Kartı Ödeme",
+    "duitku_qris": "QRIS Ödeme",
+    "unknown": "Bilinmeyen Ödeme"
+  },
+  "print_status": {
+    "idle": "Boşta",
+    "grabbing": "Alınıyor",
+    "grab_success": "Alma Başarılı",
+    "grab_failed": "Alma Başarısız",
+    "printing": "Yazdırılıyor",
+    "print_success": "Yazdırma Başarılı",
+    "print_failed": "Yazdırma Başarısız",
+    "delivering": "Teslim Ediliyor",
+    "deliver_success": "Teslim Başarılı",
+    "deliver_failed": "Teslim Başarısız"
+  },
+  "order_status": {
+    "idle": "Şimdi öde",
+    "waiting": "Sırada",
+    "printing": "Yazdırılıyor"
+  },
+  "errcode": {
+    "order_image_save_failed": ""
+  }
+}

@@ -1,0 +1,46 @@
+{
+    "pay_type": {
+        "wechat": "WeChat Pay",
+        "alipay": "alipay",
+        "pickup": "ကုဒ်ဖြင့်ရယူရန်",
+        "card": "ကတ်ဖြင့်ပေးချေရန်",
+        "free": "အခမဲ့",
+        "reprint": "ပြန်လည်ရိုက်ထုတ်ရန်",
+        "duit_now_pay": "DuitNow",
+        "prompt_pay": "PromptPay",
+        "cash": "ငွေသား",
+        "scan2_pay": "Scan2Pay ထိုင်ဝမ်",
+        "wechat_global": "WeChat Global",
+        "pay_pay": "PayPay",
+        "ele_pay": "ElePay",
+        "magnati": "Magnati",
+        "prompt_pay_ksher": "Ksher ထိုင်း",
+        "stripe": "Stripe",
+        "pay_way": "PayWay",
+        "line_pay": "LinePay",
+        "pix_pay": "PIX ဘရာဇီး",
+        "game_card": "ဂိမ်းကတ်",
+        "duitku_qris": "QRIS ငွေပေးချေမှု",
+        "unknown": "မသိရှိပါ"
+    },
+    "print_status": {
+        "idle": "စောင့်ဆိုင်းဆောင်ရွက်ရန်",
+        "grabbing": "ဆွဲယူနေသည်",
+        "grab_success": "ဆွဲယူအောင်မြင်",
+        "grab_failed": "ဆွဲယူမအောင်မြင်",
+        "printing": "ပုံနှိပ်နေသည်",
+        "print_success": "ပုံနှိပ်အောင်မြင်",
+        "print_failed": "ပုံနှိပ်မအောင်မြင်",
+        "delivering": "ထုတ်ပေးနေသည်",
+        "deliver_success": "ထုတ်ပေးအောင်မြင်",
+        "deliver_failed": "ထုတ်ပေးမအောင်မြင်"
+    },
+    "order_status": {
+        "idle": "အခုချက်ချင်းငွေပေးပါ",
+        "waiting": "တန်းစီနေသည်",
+        "printing": "ပုံနှိပ်နေသည်"
+    },
+    "errcode": {
+        "order_image_save_failed": ""
+    }
+}

@@ -1,4 +1,5 @@
-// Supplier order IPC from phonecase-diy-api.zip. This module is not mounted by the kiosk UI.
+// Historical supplier order IPC adapter. Neither terminal entry imports this module.
+// Customer confirmation / payment handoff now belongs to H5 and its server.
 // The current flow creates orders through the cloud API. Local creation helpers below
 // are retained only for reference/integration tests and are not called by the kiosk.
 export type OrderCommand='generate_business_number'|'download_upload_image'|'save_canvas_image'|'create_order'|'get_order_list'|'get_order_by_id'|'get_printable_order'|'select_order_payment';

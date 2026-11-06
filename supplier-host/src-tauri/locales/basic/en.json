@@ -1,0 +1,46 @@
+{
+    "pay_type": {
+        "wechat": "WeChat Pay",
+        "alipay": "alipay",
+        "pickup": "Pickup Code",
+        "card": "Card Payment",
+        "free": "Free Payment",
+        "reprint": "Reprint Payment",
+        "duit_now_pay": "Malaysia DuitNow Pay",
+        "prompt_pay": "Thailand PromptPay",
+        "cash": "Cash Payment",
+        "scan2_pay": "Taiwan Scan2Pay",
+        "wechat_global": "WeChat Interna Pay",
+        "pay_pay": "Japan PayPay",
+        "ele_pay": "Japan ElePay",
+        "magnati": "Magnati",
+        "prompt_pay_ksher": "Ksher PromptPay",
+        "stripe": "Stripe",
+        "pay_way": "Cambodia PayWay",
+        "line_pay": "LinePay",
+        "pix_pay": "Brazil PIX Pay",
+        "game_card": "Game Card Payment",
+        "duitku_qris": "QRIS Payment",
+        "unknown": "Unknown Payment"
+    },
+    "print_status": {
+        "idle": "idle",
+        "grabbing": "grabbing",
+        "grab_success": "grab_success",
+        "grab_failed": "grab_failed",
+        "printing": "printing",
+        "print_success": "print_success",
+        "print_failed": "print_failed",
+        "delivering": "delivering",
+        "deliver_success": "deliver_success",
+        "deliver_failed": "deliver_failed"
+    },
+    "order_status": {
+        "idle": "Pay Now",
+        "waiting": "Queued",
+        "printing": "Printing"
+    },
+    "errcode": {
+        "order_image_save_failed": ""
+    }
+}

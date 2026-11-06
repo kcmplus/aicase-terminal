@@ -1,0 +1,46 @@
+{
+    "pay_type": {
+        "wechat": "WeChat Pay",
+        "alipay": "alipay",
+        "pickup": "Kode penukaran",
+        "card": "Pembayaran dengan kartu",
+        "free": "Gratis",
+        "reprint": "Cetak ulang",
+        "duit_now_pay": "DuitNow",
+        "prompt_pay": "PromptPay",
+        "cash": "Tunai",
+        "scan2_pay": "Scan2Pay Taiwan",
+        "wechat_global": "WeChat Global",
+        "pay_pay": "PayPay",
+        "ele_pay": "ElePay",
+        "magnati": "Magnati",
+        "prompt_pay_ksher": "Ksher Thailand",
+        "stripe": "Stripe",
+        "pay_way": "PayWay",
+        "line_pay": "LinePay",
+        "pix_pay": "PIX Brasil",
+        "game_card": "Kartu game",
+        "duitku_qris": "Pembayaran QRIS",
+        "unknown": "Tidak diketahui"
+    },
+    "print_status": {
+        "idle": "Menunggu",
+        "grabbing": "Mengambil",
+        "grab_success": "Pengambilan berhasil",
+        "grab_failed": "Pengambilan gagal",
+        "printing": "Mencetak",
+        "print_success": "Pencetakan berhasil",
+        "print_failed": "Pencetakan gagal",
+        "delivering": "Mengeluarkan",
+        "deliver_success": "Pengeluaran berhasil",
+        "deliver_failed": "Pengeluaran gagal"
+    },
+    "order_status": {
+        "idle": "Bayar sekarang",
+        "waiting": "Dalam antrian",
+        "printing": "Mencetak"
+    },
+    "errcode": {
+        "order_image_save_failed": ""
+    }
+}

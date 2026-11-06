@@ -1,0 +1,46 @@
+{
+    "pay_type": {
+        "wechat": "WeChat Pay",
+        "alipay": "alipay",
+        "pickup": "Код за подигање",
+        "card": "Плаќање со картичка",
+        "free": "Бесплатно",
+        "reprint": "Препечатување",
+        "duit_now_pay": "DuitNow",
+        "prompt_pay": "PromptPay",
+        "cash": "Готовина",
+        "scan2_pay": "Scan2Pay Тајван",
+        "wechat_global": "WeChat Global",
+        "pay_pay": "PayPay",
+        "ele_pay": "ElePay",
+        "magnati": "Magnati",
+        "prompt_pay_ksher": "Ksher Тајланд",
+        "stripe": "Stripe",
+        "pay_way": "PayWay",
+        "line_pay": "LinePay",
+        "pix_pay": "PIX Бразил",
+        "game_card": "Играчка картичка",
+        "duitku_qris": "Плаќање QRIS",
+        "unknown": "Непознато"
+    },
+    "print_status": {
+        "idle": "На чекање",
+        "grabbing": "Земање",
+        "grab_success": "Земањето успешно",
+        "grab_failed": "Неуспешно земање",
+        "printing": "Печатење",
+        "print_success": "Печатењето успешно",
+        "print_failed": "Неуспешно печатење",
+        "delivering": "Издавање",
+        "deliver_success": "Издавањето успешно",
+        "deliver_failed": "Неуспешно издавање"
+    },
+    "order_status": {
+        "idle": "Платете сега",
+        "waiting": "Во редица",
+        "printing": "Печатење"
+    },
+    "errcode": {
+        "order_image_save_failed": ""
+    }
+}

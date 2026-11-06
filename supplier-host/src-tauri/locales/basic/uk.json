@@ -1,0 +1,46 @@
+{
+    "pay_type": {
+        "wechat": "WeChat Pay",
+        "alipay": "alipay",
+        "pickup": "Код погашення",
+        "card": "Оплата карткою",
+        "free": "Безкоштовно",
+        "reprint": "Передрук",
+        "duit_now_pay": "DuitNow",
+        "prompt_pay": "PromptPay",
+        "cash": "Готівка",
+        "scan2_pay": "Scan2Pay Тайвань",
+        "wechat_global": "WeChat Global",
+        "pay_pay": "PayPay",
+        "ele_pay": "ElePay",
+        "magnati": "Magnati",
+        "prompt_pay_ksher": "Ksher Таїланд",
+        "stripe": "Stripe",
+        "pay_way": "PayWay",
+        "line_pay": "LinePay",
+        "pix_pay": "PIX Бразилія",
+        "game_card": "Ігрова карта",
+        "duitku_qris": "Оплата QRIS",
+        "unknown": "Невідомо"
+    },
+    "print_status": {
+        "idle": "Очікування",
+        "grabbing": "Витягування",
+        "grab_success": "Витягування успішне",
+        "grab_failed": "Помилка витягування",
+        "printing": "Друк",
+        "print_success": "Друк успішний",
+        "print_failed": "Помилка друку",
+        "delivering": "Видача",
+        "deliver_success": "Видача успішна",
+        "deliver_failed": "Помилка видачі"
+    },
+    "order_status": {
+        "idle": "Сплатити зараз",
+        "waiting": "У черзі",
+        "printing": "Друк"
+    },
+    "errcode": {
+        "order_image_save_failed": ""
+    }
+}

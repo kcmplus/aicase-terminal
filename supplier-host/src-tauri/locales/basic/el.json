@@ -1,0 +1,46 @@
+{
+    "pay_type": {
+        "wechat": "WeChat Pay",
+        "alipay": "alipay",
+        "pickup": "Κωδικός εξαργύρωσης",
+        "card": "Πληρωμή με κάρτα",
+        "free": "Δωρεάν",
+        "reprint": "Επανεκτύπωση",
+        "duit_now_pay": "DuitNow",
+        "prompt_pay": "PromptPay",
+        "cash": "Μετρητά",
+        "scan2_pay": "Scan2Pay Ταϊβάν",
+        "wechat_global": "WeChat Global",
+        "pay_pay": "PayPay",
+        "ele_pay": "ElePay",
+        "magnati": "Magnati",
+        "prompt_pay_ksher": "Ksher Ταϊλάνδη",
+        "stripe": "Stripe",
+        "pay_way": "PayWay",
+        "line_pay": "LinePay",
+        "pix_pay": "PIX Βραζιλία",
+        "game_card": "Κάρτα παιχνιδιού",
+        "duitku_qris": "Πληρωμή QRIS",
+        "unknown": "Άγνωστο"
+    },
+    "print_status": {
+        "idle": "Σε αναμονή",
+        "grabbing": "Λήψη",
+        "grab_success": "Επιτυχής λήψη",
+        "grab_failed": "Αποτυχία λήψης",
+        "printing": "Εκτύπωση",
+        "print_success": "Επιτυχής εκτύπωση",
+        "print_failed": "Αποτυχία εκτύπωσης",
+        "delivering": "Αφαίρεση",
+        "deliver_success": "Επιτυχής αφαίρεση",
+        "deliver_failed": "Αποτυχία αφαίρεσης"
+    },
+    "order_status": {
+        "idle": "Πληρώστε τώρα",
+        "waiting": "Σε ουρά",
+        "printing": "Εκτύπωση"
+    },
+    "errcode": {
+        "order_image_save_failed": ""
+    }
+}

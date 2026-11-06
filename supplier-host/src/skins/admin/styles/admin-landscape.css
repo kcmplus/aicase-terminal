@@ -1,0 +1,258 @@
+/* Admin 横屏适配（1920×1080）— 在 scoped style 中 @import，选择器会带上 data-v */
+
+@media (orientation: landscape) {
+
+  /* admin.vue 外壳 */
+  .admin-shell .admin-header {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .admin-shell .admin-nav {
+    padding-top: 12px;
+    padding-bottom: 16px;
+  }
+
+  .admin-shell .admin-content {
+    padding: 8px 16px;
+  }
+
+  /* system / payment 页面 */
+  .system-page>.flex.flex-col {
+    gap: 12px !important;
+  }
+
+  .system-page>h2 {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+  }
+
+  .system-module-card :deep(.el-card__header) {
+    padding: 12px 16px;
+  }
+
+  .system-module-card :deep(.el-card__body) {
+    padding: 12px 16px;
+  }
+
+  /* 账户配置：左右两栏 */
+  .account-form:has(.account-form-col) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 48px;
+    align-items: start;
+  }
+
+  .account-form-col {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 12px;
+    row-gap: 14px;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .account-form-col :deep(.el-form-item) {
+    display: contents;
+    margin-bottom: 0;
+  }
+
+  .account-form-col :deep(.el-form-item__label-wrap) {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  .account-form-col :deep(.el-form-item__label) {
+    width: auto !important;
+    max-width: none;
+    white-space: nowrap;
+    justify-self: start;
+    padding-right: 0;
+    height: auto;
+    line-height: 1.4;
+  }
+
+  .account-form-col :deep(.el-form-item__content) {
+    min-width: 0;
+    align-self: center;
+  }
+
+  /* 其他设置等未分栏表单：仍按表单项两列排布 */
+  .account-form:not(:has(.account-form-col)) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 48px;
+    row-gap: 0;
+    align-items: start;
+  }
+
+  .account-form:not(:has(.account-form-col)) :deep(.el-form-item) {
+    margin-bottom: 14px;
+    min-width: 0;
+  }
+
+  .account-form:not(:has(.account-form-col)) :deep(.el-form-item__label-wrap) {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  .account-form:not(:has(.account-form-col)) :deep(.el-form-item__label) {
+    width: auto !important;
+    max-width: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .account-form:not(:has(.account-form-col)) :deep(.el-form-item__content) {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .address-combo {
+    min-width: 0;
+  }
+
+  .timeout-grid {
+    gap: 12px 16px;
+  }
+
+  .timeout-item {
+    padding: 12px;
+  }
+
+  .media-grid {
+    gap: 0 20px;
+  }
+
+  .media-item--home {
+    padding-right: 12px;
+  }
+
+  .media-item--inner {
+    padding-left: 12px;
+  }
+
+  .media-module-card :deep(.el-card__body) {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .feature-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px 16px;
+  }
+
+  .video-preview {
+    max-width: min(480px, 100%);
+  }
+
+  .video-player {
+    max-height: 260px;
+  }
+
+  /* 虚拟键盘：横屏时收窄并降低高度，避免占满可视区 */
+  .keyboard-panel {
+    bottom: 12px;
+    width: min(720px, calc(100% - 32px));
+    margin-left: calc(min(720px, calc(100% - 32px)) / -2);
+    padding: 0 16px 16px;
+  }
+
+  .keyboard-body:not(.is-numeric) {
+    min-height: 200px;
+    padding: 12px 16px;
+  }
+
+  /* channel.vue 货道格 */
+  .channel-grid-cell {
+    min-height: 88px !important;
+    max-height: 120px !important;
+  }
+
+  .channel-toolbar {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-bottom: 8px;
+  }
+}
+
+/* 账户配置：竖屏单列，标签与输入框同一行，标签列按全表最长标题统一宽度 */
+@media (orientation: portrait) {
+  .account-form:has(.account-form-col) {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 12px;
+    row-gap: 16px;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .account-form-col {
+    display: contents;
+  }
+
+  .account-form-col :deep(.el-form-item) {
+    display: contents;
+    margin-bottom: 0;
+  }
+
+  .account-form-col :deep(.el-form-item__label-wrap) {
+    margin: 0 !important;
+  }
+
+  .account-form-col :deep(.el-form-item__label) {
+    width: auto !important;
+    max-width: none;
+    white-space: nowrap;
+    justify-self: start;
+    padding-right: 0;
+    height: auto;
+    line-height: 1.4;
+  }
+
+  .account-form-col :deep(.el-form-item__content) {
+    min-width: 0;
+    align-self: center;
+  }
+
+  .account-form:not(:has(.account-form-col)) {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 12px;
+    row-gap: 16px;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .account-form:not(:has(.account-form-col)) :deep(.el-form-item) {
+    display: contents;
+    margin-bottom: 0;
+  }
+
+  .account-form:not(:has(.account-form-col)) :deep(.el-form-item__label-wrap) {
+    margin: 0 !important;
+  }
+
+  .account-form:not(:has(.account-form-col)) :deep(.el-form-item__label) {
+    width: auto !important;
+    max-width: none;
+    white-space: nowrap;
+    height: auto;
+    line-height: 1.4;
+    padding: 0;
+    justify-self: start;
+  }
+
+  .account-form:not(:has(.account-form-col)) :deep(.el-form-item__content) {
+    min-width: 0;
+    align-self: center;
+    margin-left: 0 !important;
+  }
+
+  .address-combo {
+    min-width: 0;
+    width: 100%;
+  }
+}

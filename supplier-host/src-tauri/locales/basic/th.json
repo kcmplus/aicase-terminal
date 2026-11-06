@@ -1,0 +1,46 @@
+{
+    "pay_type": {
+        "wechat": "WeChat Pay",
+        "alipay": "alipay",
+        "pickup": "รหัสรับสินค้า",
+        "card": "ชำระด้วยบัตร",
+        "free": "ฟรี",
+        "reprint": "พิมพ์ซ้ำ",
+        "duit_now_pay": "DuitNow",
+        "prompt_pay": "PromptPay",
+        "cash": "เงินสด",
+        "scan2_pay": "Scan2Pay ไต้หวัน",
+        "wechat_global": "WeChat Global",
+        "pay_pay": "PayPay",
+        "ele_pay": "ElePay",
+        "magnati": "Magnati",
+        "prompt_pay_ksher": "Ksher ไทย",
+        "stripe": "Stripe",
+        "pay_way": "PayWay",
+        "line_pay": "LinePay",
+        "pix_pay": "PIX บราซิล",
+        "game_card": "บัตรเกม",
+        "duitku_qris": "การชำระเงิน QRIS",
+        "unknown": "ไม่ทราบ"
+    },
+    "print_status": {
+        "idle": "รอดำเนินการ",
+        "grabbing": "กำลังหยิบ",
+        "grab_success": "หยิบสำเร็จ",
+        "grab_failed": "หยิบล้มเหลว",
+        "printing": "กำลังพิมพ์",
+        "print_success": "พิมพ์สำเร็จ",
+        "print_failed": "พิมพ์ล้มเหลว",
+        "delivering": "กำลังนำออก",
+        "deliver_success": "นำออกสำเร็จ",
+        "deliver_failed": "นำออกล้มเหลว"
+    },
+    "order_status": {
+        "idle": "ชำระเงินตอนนี้",
+        "waiting": "อยู่ในคิว",
+        "printing": "กำลังพิมพ์"
+    },
+    "errcode": {
+        "order_image_save_failed": ""
+    }
+}

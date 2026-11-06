@@ -1,0 +1,213 @@
+{
+    "ver": "1",
+    "data": [
+        {
+            "id": 0,
+            "brand_id": "Apple",
+            "series_id": "iPhone7",
+            "image": "iPhone7.png",
+            "lang_id": "series.iPhone7",
+            "priority": 8400
+        },
+        {
+            "id": 0,
+            "brand_id": "Apple",
+            "series_id": "iPhone8",
+            "image": "iPhone8.png",
+            "lang_id": "series.iPhone8",
+            "priority": 8410
+        },
+        {
+            "id": 0,
+            "brand_id": "Apple",
+            "series_id": "iPhoneX",
+            "image": "iPhoneX.png",
+            "lang_id": "series.iPhoneX",
+            "priority": 8420
+        },
+        {
+            "id": 0,
+            "brand_id": "Apple",
+            "series_id": "iPhoneSE",
+            "image": "iPhoneSE.png",
+            "lang_id": "series.iPhoneSE",
+            "priority": 8430
+        },
+        {
+            "id": 0,
+            "brand_id": "Apple",
+            "series_id": "iPhone11",
+            "image": "iPhone11.png",
+            "lang_id": "series.iPhone11",
+            "priority": 8440
+        },
+        {
+            "id": 0,
+            "brand_id": "Apple",
+            "series_id": "iPhone12",
+            "image": "iPhone12.png",
+            "lang_id": "series.iPhone12",
+            "priority": 8450
+        },
+        {
+            "id": 0,
+            "brand_id": "Apple",
+            "series_id": "iPhone13",
+            "image": "iPhone13.png",
+            "lang_id": "series.iPhone13",
+            "priority": 8460
+        },
+        {
+            "id": 0,
+            "brand_id": "Apple",
+            "series_id": "iPhone14",
+            "image": "iPhone14.png",
+            "lang_id": "series.iPhone14",
+            "priority": 8470
+        },
+        {
+            "id": 0,
+            "brand_id": "Apple",
+            "series_id": "iPhone15",
+            "image": "iPhone15.png",
+            "lang_id": "series.iPhone15",
+            "priority": 8480
+        },
+        {
+            "id": 0,
+            "brand_id": "Apple",
+            "series_id": "iPhone16",
+            "image": "iPhone16.png",
+            "lang_id": "series.iPhone16",
+            "priority": 8490
+        },
+        {
+            "id": 0,
+            "brand_id": "Apple",
+            "series_id": "iPhone17",
+            "image": "iPhone17.png",
+            "lang_id": "series.iPhone17",
+            "priority": 8500
+        },
+        {
+            "id": 0,
+            "brand_id": "Apple",
+            "series_id": "iPhone18",
+            "image": "iPhone18.png",
+            "lang_id": "series.iPhone18",
+            "priority": 8510
+        },
+        {
+            "id": 0,
+            "brand_id": "Google",
+            "series_id": "GooglePixel",
+            "image": "GooglePixel.png",
+            "lang_id": "series.GooglePixel",
+            "priority": 7500
+        },
+        {
+            "id": 0,
+            "brand_id": "Samsung",
+            "series_id": "SamsungA",
+            "image": "SamsungA.png",
+            "lang_id": "series.SamsungA",
+            "priority": 6400
+        },
+        {
+            "id": 0,
+            "brand_id": "Samsung",
+            "series_id": "SamsungS",
+            "image": "SamsungS.png",
+            "lang_id": "series.SamsungS",
+            "priority": 6500
+        },
+        {
+            "id": 0,
+            "brand_id": "Huawei",
+            "series_id": "HuaweiP",
+            "image": "HuaweiP.png",
+            "lang_id": "series.HuaweiP",
+            "priority": 5300
+        },
+        {
+            "id": 0,
+            "brand_id": "Huawei",
+            "series_id": "HuaweiMate",
+            "image": "HuaweiMate.png",
+            "lang_id": "series.HuaweiMate",
+            "priority": 5400
+        },
+        {
+            "id": 0,
+            "brand_id": "Huawei",
+            "series_id": "HuaweiPura",
+            "image": "HuaweiPura.png",
+            "lang_id": "series.HuaweiPura",
+            "priority": 5500
+        },
+        {
+            "id": 0,
+            "brand_id": "Honor",
+            "series_id": "HonorMagic",
+            "image": "HonorMagic.png",
+            "lang_id": "series.HonorMagic",
+            "priority": 4500
+        },
+        {
+            "id": 0,
+            "brand_id": "Honor",
+            "series_id": "HonorNumeric",
+            "image": "HonorNumeric.png",
+            "lang_id": "series.HonorNumeric",
+            "priority": 4300
+        },
+        {
+            "id": 0,
+            "brand_id": "Xiaomi",
+            "series_id": "XiaomiNumeric",
+            "image": "XiaomiNumeric.png",
+            "lang_id": "series.XiaomiNumeric",
+            "priority": 3500
+        },
+        {
+            "id": 0,
+            "brand_id": "Xiaomi",
+            "series_id": "RedmiNumeric",
+            "image": "RedmiNumeric.png",
+            "lang_id": "series.RedmiNumeric",
+            "priority": 3400
+        },
+        {
+            "id": 0,
+            "brand_id": "Xiaomi",
+            "series_id": "RedmiNote",
+            "image": "RedmiNote.png",
+            "lang_id": "series.RedmiNote",
+            "priority": 3300
+        },
+        {
+            "id": 0,
+            "brand_id": "Oppo",
+            "series_id": "OppoA",
+            "image": "OppoA.png",
+            "lang_id": "series.OppoA",
+            "priority": 2100
+        },
+        {
+            "id": 0,
+            "brand_id": "Oppo",
+            "series_id": "OppoReno",
+            "image": "OppoReno.png",
+            "lang_id": "series.OppoReno",
+            "priority": 2400
+        },
+        {
+            "id": 0,
+            "brand_id": "Oppo",
+            "series_id": "OppoFind",
+            "image": "OppoFind.png",
+            "lang_id": "series.OppoFind",
+            "priority": 2500
+        }
+    ]
+}

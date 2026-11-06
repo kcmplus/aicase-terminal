@@ -1,0 +1,69 @@
+{
+    "ver": "1",
+    "data": [
+        {
+            "id": 0,
+            "brand_id": "Apple",
+            "image": "Apple.png",
+            "image2": "Apple_selected.png",
+            "lang_id": "brands.Apple",
+            "priority": 8000
+        },
+        {
+            "id": 0,
+            "brand_id": "Google",
+            "image": "Google.png",
+            "image2": "Google_selected.png",
+            "lang_id": "brands.Google",
+            "priority": 7000
+        },
+        {
+            "id": 0,
+            "brand_id": "Samsung",
+            "image": "Samsung.png",
+            "image2": "Samsung_selected.png",
+            "lang_id": "brands.Samsung",
+            "priority": 6000
+        },
+        {
+            "id": 0,
+            "brand_id": "Huawei",
+            "image": "Huawei.png",
+            "image2": "Huawei_selected.png",
+            "lang_id": "brands.Huawei",
+            "priority": 5000
+        },
+        {
+            "id": 0,
+            "brand_id": "Honor",
+            "image": "Honor.png",
+            "image2": "Honor_selected.png",
+            "lang_id": "brands.Honor",
+            "priority": 4000
+        },
+        {
+            "id": 0,
+            "brand_id": "Xiaomi",
+            "image": "Xiaomi.png",
+            "image2": "Xiaomi_selected.png",
+            "lang_id": "brands.Xiaomi",
+            "priority": 3000
+        },
+        {
+            "id": 0,
+            "brand_id": "Oppo",
+            "image": "Oppo.png",
+            "image2": "Oppo_selected.png",
+            "lang_id": "brands.Oppo",
+            "priority": 2000
+        },
+        {
+            "id": 0,
+            "brand_id": "Vivo",
+            "image": "Vivo.png",
+            "image2": "Vivo_selected.png",
+            "lang_id": "brands.Vivo",
+            "priority": 1000
+        }
+    ]
+}

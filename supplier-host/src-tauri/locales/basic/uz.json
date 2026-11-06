@@ -1,0 +1,46 @@
+{
+  "pay_type": {
+    "wechat": "WeChat to'lovi",
+    "alipay": "Alipay to'lovi",
+    "pickup": "Olish kodi",
+    "card": "Karta to'lovi",
+    "free": "Bepul to'lov",
+    "reprint": "Qayta bosib chiqarish to'lovi",
+    "duit_now_pay": "Malayziya DuitNow to'lovi",
+    "prompt_pay": "Tailand PromptPay to'lovi",
+    "cash": "Naqd to'lov",
+    "scan2_pay": "Tayvan Scan2Pay to'lovi",
+    "wechat_global": "WeChat Xalqaro to'lovi",
+    "pay_pay": "Yaponiya PayPay to'lovi",
+    "ele_pay": "Yaponiya ElePay to'lovi",
+    "magnati": "Magnati",
+    "prompt_pay_ksher": "Ksher PromptPay to'lovi",
+    "stripe": "Stripe",
+    "pay_way": "Kambodja PayWay to'lovi",
+    "line_pay": "LinePay to'lovi",
+    "pix_pay": "Braziliya PIX to'lovi",
+    "game_card": "O'yin kartasi to'lovi",
+    "duitku_qris": "QRIS to'lovi",
+    "unknown": "Noma'lum to'lov"
+  },
+  "print_status": {
+    "idle": "Bo'sh",
+    "grabbing": "Olinmoqda",
+    "grab_success": "Olish muvaffaqiyatli",
+    "grab_failed": "Olish muvaffaqiyatsiz",
+    "printing": "Bosilmoqda",
+    "print_success": "Bosish muvaffaqiyatli",
+    "print_failed": "Bosish muvaffaqiyatsiz",
+    "delivering": "Yetkazilmoqda",
+    "deliver_success": "Yetkazish muvaffaqiyatli",
+    "deliver_failed": "Yetkazish muvaffaqiyatsiz"
+  },
+  "order_status": {
+    "idle": "Hozir to'lang",
+    "waiting": "Navbatda",
+    "printing": "Bosilmoqda"
+  },
+  "errcode": {
+    "order_image_save_failed": ""
+  }
+}

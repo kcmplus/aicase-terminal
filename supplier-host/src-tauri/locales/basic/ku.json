@@ -1,0 +1,46 @@
+{
+    "pay_type": {
+        "wechat": "WeChat Pay",
+        "alipay": "alipay",
+        "pickup": "Koda vekirina",
+        "card": "Daya bi kartê",
+        "free": "Belaş",
+        "reprint": "Çapkirina dîsa",
+        "duit_now_pay": "DuitNow",
+        "prompt_pay": "PromptPay",
+        "cash": "Pereyê dest",
+        "scan2_pay": "Scan2Pay Taywan",
+        "wechat_global": "WeChat Global",
+        "pay_pay": "PayPay",
+        "ele_pay": "ElePay",
+        "magnati": "Magnati",
+        "prompt_pay_ksher": "Ksher Tayland",
+        "stripe": "Stripe",
+        "pay_way": "PayWay",
+        "line_pay": "LinePay",
+        "pix_pay": "PIX Brezîl",
+        "game_card": "Karta lîstikê",
+        "duitku_qris": "Peymana QRIS",
+        "unknown": "Nenas"
+    },
+    "print_status": {
+        "idle": "Li bendê",
+        "grabbing": "Di girtinê de",
+        "grab_success": "Girtin serkeftî",
+        "grab_failed": "Girtin têkçû",
+        "printing": "Di çapkirinê de",
+        "print_success": "Çapkirin serkeftî",
+        "print_failed": "Çapkirin têkçû",
+        "delivering": "Di derxistinê de",
+        "deliver_success": "Derxistin serkeftî",
+        "deliver_failed": "Derxistin têkçû"
+    },
+    "order_status": {
+        "idle": "Pagoni tani",
+        "waiting": "Di rêzê de",
+        "printing": "Di çapkirinê de"
+    },
+    "errcode": {
+        "order_image_save_failed": ""
+    }
+}

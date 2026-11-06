@@ -1,0 +1,46 @@
+{
+    "pay_type": {
+        "wechat": "WeChat Pay",
+        "alipay": "alipay",
+        "pickup": "Inlösenkod",
+        "card": "Kortbetalning",
+        "free": "Gratis",
+        "reprint": "Omutskrift",
+        "duit_now_pay": "DuitNow",
+        "prompt_pay": "PromptPay",
+        "cash": "Kontant",
+        "scan2_pay": "Scan2Pay Taiwan",
+        "wechat_global": "WeChat Global",
+        "pay_pay": "PayPay",
+        "ele_pay": "ElePay",
+        "magnati": "Magnati",
+        "prompt_pay_ksher": "Ksher Thailand",
+        "stripe": "Stripe",
+        "pay_way": "PayWay",
+        "line_pay": "LinePay",
+        "pix_pay": "PIX Brasilien",
+        "game_card": "Spelkort",
+        "duitku_qris": "QRIS-betalning",
+        "unknown": "Okänd"
+    },
+    "print_status": {
+        "idle": "Väntar",
+        "grabbing": "Hämtar",
+        "grab_success": "Hämtning lyckades",
+        "grab_failed": "Hämtning misslyckades",
+        "printing": "Skriver ut",
+        "print_success": "Utskrift lyckades",
+        "print_failed": "Utskrift misslyckades",
+        "delivering": "Utmatning",
+        "deliver_success": "Utmatning lyckades",
+        "deliver_failed": "Utmatning misslyckades"
+    },
+    "order_status": {
+        "idle": "Betala nu",
+        "waiting": "I kö",
+        "printing": "Skriver ut"
+    },
+    "errcode": {
+        "order_image_save_failed": ""
+    }
+}

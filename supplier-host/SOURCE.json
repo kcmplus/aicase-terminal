@@ -1,0 +1,5 @@
+{
+  "archive": "phonecase-diy-gy.zip",
+  "sha256": "9f1aef3f4f5666bff7a88141e75e67f357b77cf7f073a37408a0fae4a24d1974",
+  "note": "Supplier UI and Tauri entry; signing backup and password-bearing build script excluded. Core is supplied separately by vendor."
+}

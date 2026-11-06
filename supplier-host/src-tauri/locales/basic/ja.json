@@ -1,0 +1,46 @@
+{
+    "pay_type": {
+        "wechat": "ウィーチャットペイ",
+        "alipay": "アリペイ",
+        "pickup": "ピックアップコード",
+        "card": "カード決済",
+        "free": "無料支払い",
+        "reprint": "再印刷決済",
+        "duit_now_pay": "マレーシアDuitNowペイ",
+        "prompt_pay": "タイ・プロンプトペイ",
+        "cash": "現金支払い",
+        "scan2_pay": "台湾Scan2Pay",
+        "wechat_global": "国際版ウィーチャットペイ",
+        "pay_pay": "PayPay",
+        "ele_pay": "QRコード決済",
+        "magnati": "マグナティ",
+        "prompt_pay_ksher": "Ksherプロンプトペイ",
+        "stripe": "クレジットカード",
+        "pay_way": "カンボジア・ペイウェイ",
+        "line_pay": "ラインペイ",
+        "pix_pay": "ブラジルPIXペイ",
+        "game_card": "ゲームカード決済",
+        "duitku_qris": "QRIS決済",
+        "unknown": "不明な支払い"
+    },
+    "print_status": {
+        "idle": "処理待ち",
+        "grabbing": "ピックアップ中",
+        "grab_success": "ピックアップ成功",
+        "grab_failed": "ピックアップ失敗",
+        "printing": "印刷中",
+        "print_success": "印刷成功",
+        "print_failed": "印刷失敗",
+        "delivering": "取り出し中",
+        "deliver_success": "取り出し成功",
+        "deliver_failed": "取り出し失敗"
+    },
+    "order_status": {
+        "idle": "今すぐお支払い",
+        "waiting": "待機中",
+        "printing": "印刷中"
+    },
+    "errcode": {
+        "order_image_save_failed": ""
+    }
+}

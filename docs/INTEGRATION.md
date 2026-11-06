@@ -1,6 +1,8 @@
 # Tauri 终端集成交接
 
-> 当前设备屏为只读展示页，无确认、支付或打印操作按钮。业务流程以 [CLOUD_ORDER_FLOW.md](CLOUD_ORDER_FLOW.md) 为准；`select_order_payment(..., "free")` 适配器保留待联调，但未挂载到设备页面。不能把已存在适配器理解成已自动放行打印。
+> 已新增包含供应商管理后台的集成工程 `supplier-host/`，优先按 [集成交接说明](SUPPLIER_HANDOFF.md) 交付。下文单独替换 `dist/` 的步骤用于独立首页；不会自动保留供应商后台。
+
+> 当前设备首页只读展示。客户确认和放行由 H5 及其服务端负责；首页不调用 `select_order_payment`，不挂载 CloudOrders，也不读取旧设备放行凭证。后台维护页面仍保留供应商原有的工作人员操作。
 
 ## 供应商操作
 
@@ -8,7 +10,7 @@
 2. 从 GitHub Actions 下载前端 ZIP 并解压，或者在本仓库执行 `npm ci && npm test && npm run package`。本地 `dist/` 和交付 ZIP 内的前端入口均为 `index.html`。
 3. 将宿主 `build.frontendDist` 指向本仓库 `dist`（相对路径以宿主配置文件位置为准）；开发时将 `build.devUrl` 指向 `http://127.0.0.1:4180`。
 4. 宿主注册下表命令，允许前端监听所列事件。按宿主实际窗口配置最小事件权限，例如 Tauri 2 的 `core:event:allow-listen` / `core:event:allow-unlisten`，不需要通用 shell、文件读写或任意 HTTP 权限。
-5. 确保 `get_machine_info`、`get_setting_options` 的设备编号一致；`h5_base_url` 指向我方商城。显式设置默认语言可使用 `VITE_DEFAULT_LANGUAGE=en-US`。
+5. 确保 `get_machine_info`、`get_setting_options` 的设备编号一致；二维码商城入口固定为 `https://aicase.chunpat.cc/`，忽略宿主 `h5_base_url`。显式设置默认语言可使用 `VITE_DEFAULT_LANGUAGE=en-US`。
 6. 真机检查重启、断网、锁定、库存变更、打印失败与出货完成，然后由供应商签名、打包、分发。仓库访问权按具体人员另行配置，不分享个人 GitHub 密钥。
 
 这是集成步骤说明，不包含可直接替换供应商工程的完整 `tauri.conf.json`。
@@ -86,7 +88,7 @@
 | `get_print_order()` | order.ts | OrderItem 或 null，使用 trade_no 关联当前任务 |
 | `get_print_progress()` | order.ts | 总进度 progress；原接口没有 trade_no，前后核对当前订单减少切单误配 |
 
-当前订阅的 16 个事件在 ZIP 枚举中均存在；普通事件只触发重读，print_warning 的 warning 字段与原类型一致。供应商 `PayType.Free = "free"` 确实存在，`select_order_payment` 的入参是 `{trade_no, pay_type}`，两个值均为字符串；该写接口目前不由页面调用。
+当前订阅的 16 个事件在 ZIP 枚举中均存在；普通事件只触发重读，print_warning 的 warning 字段与原类型一致。供应商 `PayType.Free = "free"` 确实存在，`select_order_payment` 的入参是 `{trade_no, pay_type}`，两个值均为字符串；该写接口仅作为历史契约记录，当前终端首页不会调用它，也不会调用 `get_order_by_id` 进行放行核验。客户确认归 H5 处理，见 [职责说明](CLOUD_CONNECTION.md)。
 
 构建前会执行 `tests/vendor-contract.test.ts`，从原始 TS 语法树核对本页命令、事件及支付适配参数，避免仅靠模拟数据自洽。
 
@@ -98,4 +100,4 @@
 4. Rust 工程、命令注册、窗口事件权限、排队开关和真实返回值尚未交付验证。TS 文件只能证明接口声明匹配，不能证明命令已经在运行中的终端实现。
 5. 设备/商家 ID 当前额外要求为十进制数字字符串（联调值 401/146），商品 ID 为正整数；若供应商使用其他格式，需要提前确认调整。
 
-原 ZIP 还包含文件复制、删除、硬件测试等接口。本页面没有引入这些模块或执行这些操作；只通过自己的最小适配层调用上述 9 个命令。
+原 ZIP 还包含文件复制、删除、硬件测试等接口。本页面没有引入这些模块或执行这些操作；通过自己的最小适配层调用 9 个展示命令，不额外调用 get_order_by_id 或 select_order_payment。

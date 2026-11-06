@@ -1,0 +1,46 @@
+{
+    "pay_type": {
+        "wechat": "WeChat Pay",
+        "alipay": "alipay",
+        "pickup": "رمز الاسترداد",
+        "card": "الدفع بالبطاقة",
+        "free": "مجاني",
+        "reprint": "إعادة الطباعة",
+        "duit_now_pay": "DuitNow",
+        "prompt_pay": "PromptPay",
+        "cash": "نقدًا",
+        "scan2_pay": "Scan2Pay تايوان",
+        "wechat_global": "WeChat Global",
+        "pay_pay": "PayPay",
+        "ele_pay": "ElePay",
+        "magnati": "Magnati",
+        "prompt_pay_ksher": "Ksher تايلاند",
+        "stripe": "Stripe",
+        "pay_way": "PayWay",
+        "line_pay": "LinePay",
+        "pix_pay": "PIX البرازيل",
+        "game_card": "بطاقة لعبة",
+        "duitku_qris": "دفع QRIS",
+        "unknown": "غير معروف"
+    },
+    "print_status": {
+        "idle": "معلق",
+        "grabbing": "جارٍ السحب",
+        "grab_success": "تم السحب بنجاح",
+        "grab_failed": "فشل السحب",
+        "printing": "جارٍ الطباعة",
+        "print_success": "تمت الطباعة بنجاح",
+        "print_failed": "فشل الطباعة",
+        "delivering": "جارٍ الإخراج",
+        "deliver_success": "تم الإخراج بنجاح",
+        "deliver_failed": "فشل الإخراج"
+    },
+    "order_status": {
+        "idle": "ادفع الآن",
+        "waiting": "في قائمة الانتظار",
+        "printing": "جارٍ الطباعة"
+    },
+    "errcode": {
+        "order_image_save_failed": ""
+    }
+}
