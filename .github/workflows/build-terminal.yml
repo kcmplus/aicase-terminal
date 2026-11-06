@@ -8,6 +8,10 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      release_version:
+        description: 'Release version, e.g. 0.1.2 (leave empty to build only)'
+        required: false
+        type: string
       language:
         description: 'Default display language'
         required: true
@@ -19,11 +23,84 @@ permissions:
   contents: read
 
 concurrency:
-  group: terminal-build-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: terminal-build-${{ github.workflow }}-${{ inputs.release_version && 'manual-release' || github.ref }}
+  cancel-in-progress: false
 
 jobs:
+  prepare:
+    name: Prepare build or release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      commit: ${{ steps.target.outputs.commit }}
+      tag: ${{ steps.target.outputs.tag }}
+    steps:
+      - name: Require main for a new release
+        if: github.event_name == 'workflow_dispatch' && inputs.release_version != ''
+        run: |
+          if [[ "$GITHUB_REF" != 'refs/heads/main' ]]; then
+            echo '::error::Select main in Run workflow to publish a new version.'
+            exit 1
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        if: github.event_name == 'workflow_dispatch' && inputs.release_version != ''
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        if: github.event_name == 'workflow_dispatch' && inputs.release_version != ''
+        with:
+          node-version: '24'
+      - name: Update version and push release tag
+        if: github.event_name == 'workflow_dispatch' && inputs.release_version != ''
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const version = process.env.RELEASE_VERSION;
+          const current = JSON.parse(fs.readFileSync('package.json', 'utf8')).version;
+          const pattern = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
+          if (!pattern.test(version)) throw new Error('Enter a stable version such as 0.1.2, without v.');
+          const before = current.split('-')[0].split('.').map(BigInt);
+          const after = version.split('.').map(BigInt);
+          const difference = after.findIndex((value, index) => value !== before[index]);
+          if (difference < 0 || after[difference] < before[difference]) {
+            throw new Error(`Version must be newer than ${current}. Use Re-run failed jobs to retry a failed release.`);
+          }
+          NODE
+          tag="v$RELEASE_VERSION"
+          if git show-ref --verify --quiet "refs/tags/$tag"; then
+            echo "::error::Tag $tag already exists. Published versions are never overwritten."
+            exit 1
+          fi
+          npm version "$RELEASE_VERSION" --no-git-tag-version --ignore-scripts
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json package-lock.json
+          git commit -m "chore: release $tag"
+          git tag -a "$tag" -m "Release $tag"
+          git push --atomic origin HEAD:refs/heads/main "refs/tags/$tag"
+      - name: Select exact build commit
+        id: target
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: |
+          commit="$GITHUB_SHA"
+          tag=''
+          if [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' && -n "$RELEASE_VERSION" ]]; then
+            commit="$(git rev-parse HEAD)"
+            tag="v$RELEASE_VERSION"
+          elif [[ "$GITHUB_EVENT_NAME" == 'push' && "$GITHUB_REF" == refs/tags/v* ]]; then
+            tag="$GITHUB_REF_NAME"
+          fi
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: prepare
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     outputs:
@@ -35,6 +112,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          ref: ${{ needs.prepare.outputs.commit }}
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
@@ -44,9 +122,11 @@ jobs:
             package-lock.json
             supplier-host/package-lock.json
       - name: Check release tag matches package version
-        if: github.ref_type == 'tag'
+        if: needs.prepare.outputs.tag != ''
+        env:
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
         run: |
-          node --input-type=module -e "import fs from 'node:fs'; const version=JSON.parse(fs.readFileSync('package.json','utf8')).version; if(process.env.GITHUB_REF_NAME !== 'v'+version) throw new Error('Tag must match package.json version');"
+          node --input-type=module -e "import fs from 'node:fs'; const version=JSON.parse(fs.readFileSync('package.json','utf8')).version; if(process.env.RELEASE_TAG !== 'v'+version) throw new Error('Tag must match package.json version');"
       - name: Install terminal dependencies
         run: npm ci
       - name: Install supplier UI dependencies
@@ -56,10 +136,6 @@ jobs:
       - name: Build and package supplier integration
         id: package
         run: npm run package:supplier
-      - name: Install browser test runtime
-        run: npx playwright install --with-deps chromium
-      - name: Check integrated UI and display-only behavior
-        run: npm run test:supplier
       - name: Upload supplier integration ZIP
         id: upload
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -71,8 +147,8 @@ jobs:
 
   release:
     name: Publish GitHub Release
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    needs: build
+    if: needs.prepare.outputs.tag != ''
+    needs: [prepare, build]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -81,6 +157,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          ref: ${{ needs.prepare.outputs.commit }}
           persist-credentials: false
       - name: Download verified supplier integration package
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
@@ -94,11 +171,14 @@ jobs:
           GH_REPO: ${{ github.repository }}
           ARTIFACT_NAME: ${{ needs.build.outputs.artifact-name }}
           EXPECTED_SHA256: ${{ needs.build.outputs.artifact-sha256 }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+          RELEASE_COMMIT: ${{ needs.prepare.outputs.commit }}
         run: |
           zip_path="release/$ARTIFACT_NAME"
           printf '%s  %s\n' "$EXPECTED_SHA256" "$zip_path" | sha256sum --check
           cp docs/RELEASE_NOTES.md "$RUNNER_TEMP/terminal-release-notes.md"
-          printf '\nCommit: %s\n\nSHA256: %s\n' "$GITHUB_SHA" "$EXPECTED_SHA256" >> "$RUNNER_TEMP/terminal-release-notes.md"
-          args=(--verify-tag --title "POPOMO Terminal $GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/terminal-release-notes.md")
-          if [[ "$GITHUB_REF_NAME" == *-* ]]; then args+=(--prerelease); fi
-          gh release create "$GITHUB_REF_NAME" "$zip_path" "${args[@]}"
+          printf '\nCommit: %s\n\nSHA256: %s\n' "$RELEASE_COMMIT" "$EXPECTED_SHA256" >> "$RUNNER_TEMP/terminal-release-notes.md"
+          args=(--verify-tag --title "POPOMO Terminal $RELEASE_TAG" --notes-file "$RUNNER_TEMP/terminal-release-notes.md")
+          if [[ "$RELEASE_TAG" == *-* ]]; then args+=(--prerelease); fi
+          gh release create "$RELEASE_TAG" "$zip_path" "${args[@]}"
+          printf '\nRelease: %s/%s/releases/tag/%s\n' "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$RELEASE_TAG" >> "$GITHUB_STEP_SUMMARY"

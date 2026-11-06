@@ -25,15 +25,16 @@ npm test
 npm run package:supplier
 ```
 
-界面回归检查：首次执行 `npx playwright install chromium`，构建完成后执行 `npm run test:supplier`。测试仅模拟宿主接口，不连接真实设备。
+本地按需进行界面回归检查（不在自动构建中执行）：首次执行 `npx playwright install chromium`，构建完成后执行 `npm run test:supplier`。测试仅模拟宿主接口，不连接真实设备。
 
 输出 `release/aicase-terminal-supplier-display-only-*.zip`，解压根目录为 `phonecase-diy-gy/`。首页从本仓库 `src/terminal.ts` 构建为 `supplier-host/src/popomo/terminal.js`；该文件是生成产物，不应手工编辑。首页代码修改后重新执行构建。`npm run package` 仍只交付独立首页，不含管理后台。
 
 ## 自动构建与下载
 
-GitHub Actions 的 `Build supplier integration package` 使用 Node.js 24，分别安装主项目和供应商界面的锁定依赖，执行逻辑测试、`npm run package:supplier` 以及浏览器集成检查。检查通过后才上传 ZIP。
+GitHub Actions 的 `Build supplier integration package` 使用 Node.js 24，分别安装主项目和供应商界面的锁定依赖，执行逻辑测试和 `npm run package:supplier`，成功后上传 ZIP。自动构建不安装浏览器，也不运行浏览器集成测试；需要时在本地运行。
 
-- main 推送、PR 和手动运行：到该次运行的 Artifacts 下载集成 ZIP，保留 30 天。
+- main 推送、PR 和版本号留空的手动运行：到该次运行的 Artifacts 下载集成 ZIP，保留 30 天。
+- 网页发布：Actions → Build supplier integration package → Run workflow，选择 main，`release_version` 填新版本（如 `0.1.2`，不加 `v`）。流程自动提交版本号、打标签、测试、打包并发布 Release，无需本地运行命令。已有标签不会覆盖；构建失败可在原运行中选择 Re-run failed jobs。
 - 新 `v*` 标签：同时在 GitHub Release 的 Assets 发布该次构建的同一个集成 ZIP，发布前校验 SHA256。
 - 不再自动上传独立首页 ZIP；旧版本附件保持不变。
 - CI 不运行 Tauri 原生打包，不需要私有核心或签名密钥。

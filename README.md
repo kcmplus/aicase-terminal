@@ -39,16 +39,25 @@ npm run dev
 
 ## 编译与交付
 
-已配置 [Build supplier integration package](.github/workflows/build-terminal.yml)：推送 `main`、`v*` 标签、向 main 提交 PR 或手动运行时，安装主项目与 `supplier-host` 的锁定依赖、运行接口测试、执行 `npm run package:supplier`，通过集成界面浏览器测试后上传一个供应商集成 ZIP，保留 30 天。构建使用 Node.js 24，不需要供应商私有核心或 Rust 编译环境。
+已配置 [Build supplier integration package](.github/workflows/build-terminal.yml)：推送 `main`、`v*` 标签、向 main 提交 PR 或手动运行时，安装主项目与 `supplier-host` 的锁定依赖、运行接口测试、执行 `npm run package:supplier`，成功后上传一个供应商集成 ZIP，保留 30 天。构建使用 Node.js 24，不需要供应商私有核心或 Rust 编译环境。
 
 下载位置：
 
 - 版本交付包：仓库首页右侧 **Releases** → 版本 → **Assets** → `aicase-terminal-supplier-display-only-*.zip`。不要选 GitHub 自动生成的 `Source code` 源码包。
 - 日常构建包：**Actions → Build supplier integration package → 成功运行 → Artifacts**，保留 30 天。Actions 附件下载可能需要登录 GitHub；公开 Release 附件可直接下载。
 
-推送 `v*` 标签时，构建与测试成功后自动创建 Release，发布同一构建的集成 ZIP 并核对 SHA256。普通 main 推送、PR、手动构建只保存 Artifacts，不创建版本。旧版本中的 `aicase-terminal-web-*.zip` 不会被覆盖。当前仓库公开，Release 附件也公开；流程不部署设备、不替供应商生成安装包。
+推送 `v*` 标签或手动填写发布版本时，构建与测试成功后自动创建 Release，发布同一构建的集成 ZIP 并核对 SHA256。普通 main 推送、PR、版本号留空的手动构建只保存 Artifacts，不创建版本。旧版本中的 `aicase-terminal-web-*.zip` 不会被覆盖。当前仓库公开，Release 附件也公开；流程不部署设备、不替供应商生成安装包。
 
-发布版本时先确保 `package.json` 和 `package-lock.json` 的版本一致并提交，再创建对应的新 `v*` 标签并推送。标签必须等于 `v` 加 package.json 版本；带 `-beta.1` 等后缀的版本标为 Pre-release。已发布版本不覆盖，如需修改请发新版本。
+直接在 GitHub 网页发布，无需本地命令：
+
+1. 打开 **Actions → Build supplier integration package → Run workflow**。
+2. 分支选择 **main**，`release_version` 填新版本，例如 **0.1.2**（不加 `v`），选择默认语言。
+3. 点击 **Run workflow**。流程会从最新 main 自动更新根目录的 `package.json` / `package-lock.json`、提交版本号、创建并推送 `v0.1.2` 标签，然后在同一次运行中测试、打包、发布 Release。
+4. 全部成功后，在 **Releases → v0.1.2 → Assets** 下载供应商集成 ZIP。
+
+网页入口只接受比当前版本更高的正式版本号；已有标签不覆盖。若版本准备成功，但后续构建或发布失败，修复外部问题后用该运行的 **Re-run failed jobs** 重试；需要改代码时请发布更高版本。仓库规则需允许 Actions 向 main 提交版本号和创建标签；推送失败会停止发布，不绕过保护规则。
+
+也可继续手动打标签：先确保 `package.json` 和 `package-lock.json` 的版本一致并提交，再创建对应的新 `v*` 标签并推送。标签必须等于 `v` 加 package.json 版本；带 `-beta.1` 等后缀的版本标为 Pre-release。已发布版本不覆盖，如需修改请发新版本。
 
 可在仓库 Actions 的变量或手动构建参数中设置 `VITE_DEFAULT_LANGUAGE`，默认 en-US。二维码商城入口读取宿主 `h5_base_url`，在设备管理后台设置；不接受 `VITE_STOREFRONT_URL` 覆盖。
 
@@ -59,6 +68,11 @@ npm ci
 npm --prefix supplier-host ci
 npm test
 npm run package:supplier
+```
+
+浏览器界面测试改为本地按需运行，不再阻塞自动构建：
+
+```sh
 npx playwright install chromium
 npm run test:supplier
 ```
