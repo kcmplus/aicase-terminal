@@ -34,6 +34,7 @@ npm run package:supplier
 GitHub Actions 的 `Build supplier integration package` 使用 Node.js 24，分别安装主项目和供应商界面的锁定依赖，执行逻辑测试和 `npm run package:supplier`，成功后上传 ZIP。自动构建不安装浏览器，也不运行浏览器集成测试；需要时在本地运行。
 
 - main 推送、PR 和版本号留空的手动运行：到该次运行的 Artifacts 下载集成 ZIP，保留 30 天。
+- 已有成功的 main 推送构建：Actions → Release existing build → Run workflow，选择 main，填写原 `run_id` 和新 `release_tag`。核对校验值后直接发布原 ZIP，不重复构建、不修改包内版本；Release 标签指向原提交，说明列出包内版本和来源构建。产物过期后需重新构建。
 - 网页发布：Actions → Build supplier integration package → Run workflow，选择 main，`release_version` 填新版本（如 `0.1.2`，不加 `v`）。流程自动提交版本号、打标签、测试、打包并发布 Release，无需本地运行命令。已有标签不会覆盖；构建失败可在原运行中选择 Re-run failed jobs。
 - 新 `v*` 标签：同时在 GitHub Release 的 Assets 发布该次构建的同一个集成 ZIP，发布前校验 SHA256。
 - 不再自动上传独立首页 ZIP；旧版本附件保持不变。

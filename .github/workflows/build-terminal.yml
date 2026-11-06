@@ -144,6 +144,10 @@ jobs:
           archive: false
           if-no-files-found: error
           retention-days: 30
+      - name: Show manual release entry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          printf '\n## Publish this existing build\n\n[Release existing build](%s/%s/actions/workflows/release-existing-build.yml) → Run workflow.\n\nEnter run_id: %s and a new release tag. The original ZIP will be published without rebuilding.\n' "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" >> "$GITHUB_STEP_SUMMARY"
 
   release:
     name: Publish GitHub Release

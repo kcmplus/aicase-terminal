@@ -48,7 +48,18 @@ npm run dev
 
 推送 `v*` 标签或手动填写发布版本时，构建与测试成功后自动创建 Release，发布同一构建的集成 ZIP 并核对 SHA256。普通 main 推送、PR、版本号留空的手动构建只保存 Artifacts，不创建版本。旧版本中的 `aicase-terminal-web-*.zip` 不会被覆盖。当前仓库公开，Release 附件也公开；流程不部署设备、不替供应商生成安装包。
 
-直接在 GitHub 网页发布，无需本地命令：
+已有成功构建时，直接在 GitHub 网页发布原包，无需再次安装依赖或构建：
+
+1. 打开 **Actions → Release existing build → Run workflow**，选择 **main**。
+2. `run_id` 填原构建链接末尾的数字，例如 `42194105926`。
+3. `release_tag` 填未使用的新标签，例如 `v0.1.2`，点击运行。
+4. 流程核对原构建来自本仓库 main 推送且成功、下载未过期的 ZIP、校验 SHA256 和包内提交号，然后发布到 **Releases → Assets**。
+
+此入口原样发布 ZIP，标签指向原构建的提交，不修改 main 或包内版本。例如运行 `42194105926` 的包内版本仍为 `0.1.1`，即使交付标签是 `v0.1.2`，发布说明也会明确列出两者。需要包内版本同步更新时，使用下方“构建新版本”入口。已有标签不会覆盖；PR 构建、失败构建及过期产物不能发布。发布时先创建草稿，附件上传完成后才公开；若发布失败并留下草稿，先在 Releases 检查草稿和附件，再决定完成发布或删除草稿后重试。
+
+之后的 main 构建摘要也提供 **Release existing build** 入口及当前 `run_id`。已经结束的旧运行不会补上新按钮，直接从 Actions 左侧选择该流程即可。
+
+需要更新版本号并构建新版本时：
 
 1. 打开 **Actions → Build supplier integration package → Run workflow**。
 2. 分支选择 **main**，`release_version` 填新版本，例如 **0.1.2**（不加 `v`），选择默认语言。
