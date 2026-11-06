@@ -3,6 +3,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
 import subprocess
 import zipfile
 
@@ -60,3 +61,12 @@ with zipfile.ZipFile(output) as archive:
 digest = hashlib.sha256(output.read_bytes()).hexdigest()
 output.with_suffix('.zip.sha256').write_text(f'{digest}  {output.name}\n')
 print(f'Package: {output}\nSHA256: {digest}\nSize: {output.stat().st_size} bytes')
+if os.environ.get('GITHUB_OUTPUT'):
+    with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:
+        stream.write(f'path={output.relative_to(root).as_posix()}\nname={output.name}\nsha256={digest}\n')
+if os.environ.get('GITHUB_STEP_SUMMARY'):
+    with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as stream:
+        stream.write(f'## Supplier integration package\n\n`{output.name}`\n\n'
+                     f'SHA256: `{digest}`\n\n'
+                     'Includes the POPOMO display, supplier administration UI, compiled dist and Tauri entry.\n'
+                     'The supplier must provide its private core, device configuration and final installer.\n')

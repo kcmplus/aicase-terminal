@@ -39,30 +39,35 @@ npm run dev
 
 ## 编译与交付
 
-已配置 [Build terminal frontend](.github/workflows/build-terminal.yml)：推送 `main`、`v*` 标签、向 main 提交 PR 或手动运行时，执行锁文件安装、接口一致性检查、测试、前端编译，上传一个 ZIP 文件，保留 30 天。
+已配置 [Build supplier integration package](.github/workflows/build-terminal.yml)：推送 `main`、`v*` 标签、向 main 提交 PR 或手动运行时，安装主项目与 `supplier-host` 的锁定依赖、运行接口测试、执行 `npm run package:supplier`，通过集成界面浏览器测试后上传一个供应商集成 ZIP，保留 30 天。构建使用 Node.js 24，不需要供应商私有核心或 Rust 编译环境。
 
 下载位置：
 
-- 版本交付包：仓库首页右侧 **Releases** → 版本 → **Assets** → `aicase-terminal-web-*.zip`。不要选 GitHub 自动生成的 `Source code` 源码包。
-- 日常构建包：**Actions → Build terminal frontend → 成功运行 → Artifacts**，保留 30 天。Actions 附件下载可能需要登录 GitHub；公开 Release 附件可直接下载。
+- 版本交付包：仓库首页右侧 **Releases** → 版本 → **Assets** → `aicase-terminal-supplier-display-only-*.zip`。不要选 GitHub 自动生成的 `Source code` 源码包。
+- 日常构建包：**Actions → Build supplier integration package → 成功运行 → Artifacts**，保留 30 天。Actions 附件下载可能需要登录 GitHub；公开 Release 附件可直接下载。
 
-推送 `v*` 标签时，构建与测试成功后自动创建 Release，发布同一构建的 ZIP 并核对 SHA256。普通 main 推送、PR、手动构建只保存 Artifacts，不创建版本。当前仓库公开，Release 附件也公开；流程不部署设备、不替供应商生成安装包。
+推送 `v*` 标签时，构建与测试成功后自动创建 Release，发布同一构建的集成 ZIP 并核对 SHA256。普通 main 推送、PR、手动构建只保存 Artifacts，不创建版本。旧版本中的 `aicase-terminal-web-*.zip` 不会被覆盖。当前仓库公开，Release 附件也公开；流程不部署设备、不替供应商生成安装包。
 
-发布版本时先确保 `package.json` 和 `package-lock.json` 的版本一致并提交，再执行 `git tag v0.1.0`、`git push origin v0.1.0`（以后替换为对应新版本）。标签必须等于 `v` 加 package.json 版本；带 `-beta.1` 等后缀的版本标为 Pre-release。已发布版本不覆盖，如需修改请发新版本。
+发布版本时先确保 `package.json` 和 `package-lock.json` 的版本一致并提交，再创建对应的新 `v*` 标签并推送。标签必须等于 `v` 加 package.json 版本；带 `-beta.1` 等后缀的版本标为 Pre-release。已发布版本不覆盖，如需修改请发新版本。
 
 可在仓库 Actions 的变量或手动构建参数中设置 `VITE_DEFAULT_LANGUAGE`，默认 en-US。二维码商城入口读取宿主 `h5_base_url`，在设备管理后台设置；不接受 `VITE_STOREFRONT_URL` 覆盖。
 
-本地打包（Node.js 与 Python 3）：
+本地完整交付（Node.js 24 与 Python 3）：
 
 ```sh
 npm ci
+npm --prefix supplier-host ci
 npm test
-npm run package
+npm run package:supplier
+npx playwright install chromium
+npm run test:supplier
 ```
 
-输出 `release/aicase-terminal-web-版本-提交号.zip`。工作区有未提交改动时文件名附带 `-dirty`。ZIP 根目录是 `index.html`、`assets/`、Logo、`BUILD_INFO.json` 和集成说明；不包含源码、环境文件、依赖目录或开发示例图片。包内记录提交号、是否有未提交修改及文件校验值。
+输出 `release/aicase-terminal-supplier-display-only-版本-提交号.zip`。工作区有未提交改动时文件名附带 `-dirty`。解压后的 `phonecase-diy-gy/` 含编译后的 `dist/`、集成 UI 源码、Tauri 入口、`BUILD_INFO.json` 和交接文档；不含依赖目录、原始压缩包、设备凭证或签名私钥。包内记录提交号和文件校验值，本地另生成 ZIP 的 `.sha256` 文件，CI 构建摘要和 Release 说明也记录校验值。
 
-供应商解压到前端目录，把 Tauri 的 `build.frontendDist` 指向该目录，然后在他们的 Rust 工程中打包、签名和分发。独立首页交付方式不包含管理后台；需要保留后台时使用上述集成版。当前仓库缺供应商核心，无法独立构建 Windows/Linux 设备安装包。
+供应商按包内 `docs/SUPPLIER_HANDOFF.md` 接入其完整核心、驱动和设备配置，完成签名、安装包和真机验收。当前仓库缺供应商核心，无法独立构建 Windows/Linux 设备安装包。
+
+`npm run package` 保留为本地独立首页打包命令，仅输出 `aicase-terminal-web-*.zip`，不包含管理后台，不再作为自动构建或新版本发布的交付物。
 
 ## 手机端入口
 

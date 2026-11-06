@@ -50,7 +50,7 @@ async function enterPassword(page:Page,password='739251'){
 test('home, password gate, all maintenance pages and return keep a single terminal instance',async({page})=>{
   const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
   await mockHost(page);
-  await page.goto('/');
+  await page.goto('/?lang=en-US');
   await expect(page.locator('.popomo-terminal .qr')).toBeVisible();
   expect(await page.locator('.brand').evaluate((image:HTMLImageElement)=>image.naturalWidth)).toBeGreaterThan(0);
   await expect.poll(()=>page.evaluate(()=> (window as any).__hostTest.calls.filter((x:string)=>x==='ui_inited').length)).toBe(1);
@@ -85,7 +85,7 @@ test('home, password gate, all maintenance pages and return keep a single termin
 });
 
 test('eight touch-style pointer releases open maintenance; missing password cannot authorize',async({page})=>{
-  await mockHost(page,null);await page.goto('/?preview=1');
+  await mockHost(page,null);await page.goto('/?preview=1&lang=en-US');
   await expect(page.locator('.popomo-terminal .qr')).toBeVisible();
   await expect(page.locator('.preview-bar')).toHaveCount(0);
   for(let i=0;i<7;i++)await page.mouse.click(1060,1900);
@@ -98,7 +98,7 @@ test('eight touch-style pointer releases open maintenance; missing password cann
 });
 
 test('without a native host the production shell shows a waiting state, never sample data',async({page})=>{
-  await page.goto('/?preview=1');
+  await page.goto('/?preview=1&lang=en-US');
   await expect(page.locator('.popomo-terminal')).toContainText('Waiting for the terminal app');
   await expect(page.locator('.qr,.preview-bar')).toHaveCount(0);
   await page.keyboard.press('F8');
@@ -118,7 +118,7 @@ test('legacy credentials cannot enable payment handoff or cloud polling on the d
   await page.addInitScript(()=>{
     (window as any).POPOMO_TERMINAL_API={url:'https://terminal-api.invalid',token:'A'.repeat(43)};
   });
-  await page.goto('/');
+  await page.goto('/?lang=en-US');
   await expect(page.locator('.popomo-terminal .qr')).toBeVisible();
   await page.clock.fastForward(31000);
   await expect(page.locator('.popomo-terminal .qr')).toBeVisible();

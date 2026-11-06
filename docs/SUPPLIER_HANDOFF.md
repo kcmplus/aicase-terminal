@@ -27,7 +27,16 @@ npm run package:supplier
 
 界面回归检查：首次执行 `npx playwright install chromium`，构建完成后执行 `npm run test:supplier`。测试仅模拟宿主接口，不连接真实设备。
 
-输出 `release/aicase-terminal-supplier-*.zip`，解压根目录为 `phonecase-diy-gy/`。首页从本仓库 `src/terminal.ts` 构建为 `supplier-host/src/popomo/terminal.js`；该文件是生成产物，不应手工编辑。首页代码修改后重新执行构建。`npm run package` 仍只交付独立首页，不含管理后台。
+输出 `release/aicase-terminal-supplier-display-only-*.zip`，解压根目录为 `phonecase-diy-gy/`。首页从本仓库 `src/terminal.ts` 构建为 `supplier-host/src/popomo/terminal.js`；该文件是生成产物，不应手工编辑。首页代码修改后重新执行构建。`npm run package` 仍只交付独立首页，不含管理后台。
+
+## 自动构建与下载
+
+GitHub Actions 的 `Build supplier integration package` 使用 Node.js 24，分别安装主项目和供应商界面的锁定依赖，执行逻辑测试、`npm run package:supplier` 以及浏览器集成检查。检查通过后才上传 ZIP。
+
+- main 推送、PR 和手动运行：到该次运行的 Artifacts 下载集成 ZIP，保留 30 天。
+- 新 `v*` 标签：同时在 GitHub Release 的 Assets 发布该次构建的同一个集成 ZIP，发布前校验 SHA256。
+- 不再自动上传独立首页 ZIP；旧版本附件保持不变。
+- CI 不运行 Tauri 原生打包，不需要私有核心或签名密钥。
 
 ## 供应商如何打包
 
