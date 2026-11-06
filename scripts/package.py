@@ -47,7 +47,7 @@ with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as archive:
         'The customer-facing terminal is display-only. H5 and its server own confirmation and handoff.\n'
         'The terminal never calls select_order_payment and does not use POPOMO_TERMINAL_API credentials.\n'
         'Cloud order creation, image access and real printing still require on-device acceptance testing.\n'
-        'The QR entry is fixed to https://aicase.chunpat.cc/; device/shop IDs still come from the host.\n')
+        'Configure the H5 address in device administration; the QR uses get_machine_info().h5_base_url and native device/shop IDs.\n')
 with zipfile.ZipFile(output) as archive:
     assert archive.testzip() is None
     assert 'index.html' in archive.namelist()

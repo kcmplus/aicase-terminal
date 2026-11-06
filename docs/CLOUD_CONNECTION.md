@@ -4,7 +4,7 @@
 
 ## 供应商配置
 
-- 通过 `get_machine_info()` 返回正确的 `device_id`、`shop_id`；二维码地址固定使用我方 H5。
+- 通过 `get_machine_info()` 返回正确的 `device_id`、`shop_id`；二维码地址使用返回的 `h5_base_url`。
 - 保留设备、库存、订单、打印进度读取接口和对应事件，以及 `ui_inited` 通知。
 - 按实际订单图片路径配置 asset protocol 和图片访问权限。
 - 不需要为终端首页注入 `window.POPOMO_TERMINAL_API`；即使旧宿主仍注入此对象，当前首页也不会使用它。
@@ -12,9 +12,9 @@
 
 ## 二维码
 
-当前二维码入口固定为 `https://aicase.chunpat.cc/`（`src/domain.ts` 的 `STOREFRONT_URL`）。不使用宿主 `h5_base_url`，也不接受构建环境或设备页面 URL 覆盖。更换域名需修改常量并重新构建。
+二维码入口读取宿主 `get_machine_info().h5_base_url`。在设备后台「系统设置 → 账户配置 → Widermatrix H5 地址」设置并保存；输入框对应 `configs.api.h5_base_url`，通过 `save_setting_configs` 保存。供应商核心需将保存后的值同步到设备信息接口。前端订阅配置变化事件，并每 15 秒重读，无需为换地址重新编译。构建环境和页面 URL 不覆盖此配置。
 
-在固定地址后加入 `device_id`、`shop_id`、`lang`，并设置 `#home`。身份只来自宿主，不从设备页面 URL 获取。
+保留配置地址的路径，清除原查询参数后加入 `device_id`、`shop_id`、`lang`，并设置 `#home`。身份只来自宿主，不从设备页面 URL 获取。
 
 例如商城为 `https://aicase.chunpat.cc/`、设备为 401、商家为 146：
 

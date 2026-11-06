@@ -1,6 +1,5 @@
 import {orderQueue,type QueueOrder} from './queue';
 export type Language='zh-CN'|'en-US';
-export const STOREFRONT_URL='https://aicase.chunpat.cc/';
 export type ConnectionState='disconnected'|'connecting'|'connected'|'online';
 export type Snapshot={
   deviceId:string;shopId:string;storefront:string;name:string;number:string;
@@ -33,11 +32,12 @@ export function snapshot(raw:Record<string,unknown>):Snapshot{
   if(raw.progress!==null&&printStatus!==null){const data=record(raw.progress);if(typeof data.progress!=='number'||!Number.isFinite(data.progress)||data.progress<0||data.progress>100)throw Error('invalid-data');progress=Math.round(data.progress);}
   // Discard setting passwords, payment amounts and print originals; retain effect previews only.
   let orders:QueueOrder[]=[],ordersAvailable=true;try{orders=orderQueue(raw.orders);}catch{ordersAvailable=false;}
-  return {deviceId,shopId,storefront:STOREFRONT_URL,name:text(options.device_name),number:text(options.device_num),contact:bool(machine.is_show_contact_tel)?text(machine.contact_tel,80):'',locked:bool(options.is_lock),showEntry:bool(features.show_h5_entry),devices,modelCount:models.size,stockCount,printStatus,progress,orders,ordersAvailable,currentOrder};
+  return {deviceId,shopId,storefront:text(machine.h5_base_url,2048),name:text(options.device_name),number:text(options.device_num),contact:bool(machine.is_show_contact_tel)?text(machine.contact_tel,80):'',locked:bool(options.is_lock),showEntry:bool(features.show_h5_entry),devices,modelCount:models.size,stockCount,printStatus,progress,orders,ordersAvailable,currentOrder};
 }
-export function designUrl(data:Pick<Snapshot,'deviceId'|'shopId'>,language:Language):string{
+export function designUrl(data:Pick<Snapshot,'storefront'|'deviceId'|'shopId'>,language:Language):string{
   id(data.deviceId);id(data.shopId);
-  const url=new URL(STOREFRONT_URL);
+  let url:URL;try{url=new URL(data.storefront);}catch{throw Error('invalid-url');}
+  if(!['http:','https:'].includes(url.protocol)||url.username||url.password||url.hostname==='localhost'||url.hostname.endsWith('.localhost')||url.hostname==='[::1]'||/^127\./.test(url.hostname)||url.hostname==='0.0.0.0')throw Error('invalid-url');
   url.search=new URLSearchParams({device_id:data.deviceId,shop_id:data.shopId,lang:language}).toString();url.hash='home';return url.href;
 }
 export function unavailable(data:Snapshot):string|null{

@@ -50,7 +50,7 @@ npm run dev
 
 发布版本时先确保 `package.json` 和 `package-lock.json` 的版本一致并提交，再执行 `git tag v0.1.0`、`git push origin v0.1.0`（以后替换为对应新版本）。标签必须等于 `v` 加 package.json 版本；带 `-beta.1` 等后缀的版本标为 Pre-release。已发布版本不覆盖，如需修改请发新版本。
 
-可在仓库 Actions 的变量或手动构建参数中设置 `VITE_DEFAULT_LANGUAGE`，默认 en-US。二维码商城入口已固定为 `https://aicase.chunpat.cc/`，不再接受宿主地址或 `VITE_STOREFRONT_URL` 覆盖。
+可在仓库 Actions 的变量或手动构建参数中设置 `VITE_DEFAULT_LANGUAGE`，默认 en-US。二维码商城入口读取宿主 `h5_base_url`，在设备管理后台设置；不接受 `VITE_STOREFRONT_URL` 覆盖。
 
 本地打包（Node.js 与 Python 3）：
 
@@ -66,7 +66,7 @@ npm run package
 
 ## 手机端入口
 
-当前入口固定为 `https://aicase.chunpat.cc/`，由 `src/domain.ts` 中的 `STOREFRONT_URL` 定义。供应商返回的 `h5_base_url` 不参与二维码生成；以后更换域名需要修改此常量并重新构建。设备和商家身份仍由宿主读取。
+入口读取宿主 `get_machine_info().h5_base_url`。在设备管理后台「系统设置 → 账户配置 → Widermatrix H5 地址」设置商城地址（如 `https://aicase.chunpat.cc/`）并保存，无需重新编译前端。该设置写入 `configs.api.h5_base_url`；供应商核心需把保存后的值反映到 `get_machine_info()`。配置变化事件或 15 秒轮询会重新读取。设备和商家身份仍由宿主提供。
 
 二维码保留入口路径，重新生成仅含 `device_id`、`shop_id`、`lang` 的查询参数及 `#home`。拒绝本机回环地址、带账号密码的链接和非 HTTP(S) 协议。该码只是访问入口，不是设备身份认证或打印授权。
 

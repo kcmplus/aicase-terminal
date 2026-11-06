@@ -22,18 +22,17 @@ test('malformed states, counts, progress and duplicate slots fail closed',()=>{
   (r:ReturnType<typeof raw>)=>{r.order={print_status:'printing'};r.progress={progress:101};},
  ]){const r=raw();change(r);assert.throws(()=>snapshot(r));}
 });
-test('QR links use the fixed H5 address and native identity regardless of supplier URL',()=>{
- for(const hostUrl of ['https://vendor.example/path?token=private#other','http://localhost/','javascript:alert(1)','',null,undefined]){
-  const input=raw();(input.machine as any).h5_base_url=hostUrl;
-  const data=snapshot(input);
-  assert.equal(designUrl(data,'en-US'),
-    'https://aicase.chunpat.cc/?device_id=401&shop_id=146&lang=en-US#home');
-  assert.equal(designUrl(data,'zh-CN'),
-    'https://aicase.chunpat.cc/?device_id=401&shop_id=146&lang=zh-CN#home');
+test('QR links use the configured host H5 address and native identity, discarding unrelated parameters',()=>{
+ const input=raw();(input.machine as any).h5_base_url='https://store.example/shop?token=private#other';
+ const data=snapshot(input);
+ assert.equal(designUrl(data,'en-US'),
+   'https://store.example/shop?device_id=401&shop_id=146&lang=en-US#home');
+ assert.equal(designUrl({...data,storefront:'https://aicase.chunpat.cc/'},'zh-CN'),
+   'https://aicase.chunpat.cc/?device_id=401&shop_id=146&lang=zh-CN#home');
+ for(const storefront of ['http://127.0.0.1/','http://127.3.2.1/','http://localhost/','http://[::1]/','javascript:alert(1)','https://user:pass@store.example/','']){
+  assert.throws(()=>designUrl({...data,storefront},'en-US'));
  }
- assert.equal(designUrl({deviceId:'402',shopId:'147'},'en-US'),
-   'https://aicase.chunpat.cc/?device_id=402&shop_id=147&lang=en-US#home');
- assert.throws(()=>designUrl({deviceId:'401&token=secret',shopId:'146'},'en-US'));
+ assert.throws(()=>designUrl({...data,deviceId:'401&token=secret'},'en-US'));
 });
 test('unavailable stations hide QR; printing is not interpreted as collected',()=>{
  assert.equal(unavailable(snapshot(raw('ready'))),null);assert.equal(unavailable(snapshot(raw('printing'))),null);

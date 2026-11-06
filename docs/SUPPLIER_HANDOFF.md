@@ -34,7 +34,7 @@ npm run package:supplier
 1. 在隔离的集成分支解压交付包，保留供应商现有的核心、驱动和设备配置。
 2. 目录关系保持 `phonecase-diy-gy/src-tauri/Cargo.toml` 的 `../../phonecase-core` 可解析；核心的其他本地依赖也必须完整。
 3. 包内已有 `dist/`。如需修改外层管理 UI，在 `phonecase-diy-gy/` 执行 `npm ci` 和 `npm run build`。POPOMO 首页已经以本次交付的 ES 模块包含在 `src/popomo/`，不需要访问我方仓库才能编译外层工程。
-4. 配置正确的设备和商家身份。二维码商城入口已固定为 `https://aicase.chunpat.cc/`，忽略宿主 `h5_base_url`。客户确认及放行由 H5 和其服务端完成；不向终端注入 `POPOMO_TERMINAL_API`，终端也不会读取旧配置，详见 `docs/CLOUD_CONNECTION.md`。
+4. 配置正确的设备和商家身份。在设备后台「系统设置 → 账户配置 → Widermatrix H5 地址」设置我方商城地址并保存；首页读取 `get_machine_info().h5_base_url`。供应商核心须确保保存后的地址能从设备信息接口读出。客户确认及放行由 H5 和其服务端完成；不向终端注入 `POPOMO_TERMINAL_API`，终端也不会读取旧配置，详见 `docs/CLOUD_CONNECTION.md`。
 5. 检查 Tauri `frontendDist` 指向 `../dist`，确认订单效果图可读取；终端首页不连接订单放行 API。
 6. 在供应商支持的构建平台执行 `npm run tauri:build:default`。当前配置开启更新签名，需通过环境变量 `TAURI_SIGNING_PRIVATE_KEY` / `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` 提供供应商自有密钥。若只做无更新测试包，由供应商显式关闭 `bundle.createUpdaterArtifacts`。没有把更新私钥或密码随包交付。
 7. 交付安装包、核心版本、前端 `BUILD_INFO.json` 和安装包校验值；双方完成真机验收。

@@ -10,7 +10,7 @@
 2. 从 GitHub Actions 下载前端 ZIP 并解压，或者在本仓库执行 `npm ci && npm test && npm run package`。本地 `dist/` 和交付 ZIP 内的前端入口均为 `index.html`。
 3. 将宿主 `build.frontendDist` 指向本仓库 `dist`（相对路径以宿主配置文件位置为准）；开发时将 `build.devUrl` 指向 `http://127.0.0.1:4180`。
 4. 宿主注册下表命令，允许前端监听所列事件。按宿主实际窗口配置最小事件权限，例如 Tauri 2 的 `core:event:allow-listen` / `core:event:allow-unlisten`，不需要通用 shell、文件读写或任意 HTTP 权限。
-5. 确保 `get_machine_info`、`get_setting_options` 的设备编号一致；二维码商城入口固定为 `https://aicase.chunpat.cc/`，忽略宿主 `h5_base_url`。显式设置默认语言可使用 `VITE_DEFAULT_LANGUAGE=en-US`。
+5. 确保 `get_machine_info`、`get_setting_options` 的设备编号一致；二维码商城入口读取宿主 `h5_base_url`，在设备管理后台的「Widermatrix H5 地址」设置并保存。显式设置默认语言可使用 `VITE_DEFAULT_LANGUAGE=en-US`。
 6. 真机检查重启、断网、锁定、库存变更、打印失败与出货完成，然后由供应商签名、打包、分发。仓库访问权按具体人员另行配置，不分享个人 GitHub 密钥。
 
 这是集成步骤说明，不包含可直接替换供应商工程的完整 `tauri.conf.json`。
