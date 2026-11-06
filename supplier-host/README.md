@@ -5,6 +5,7 @@
 - 当前仓库：先在上级目录执行 `npm run build:embedded`，再在本目录执行 `npm ci`、`npm run build`。
 - 收到交付 ZIP：`src/popomo/terminal.js` 和 `dist/` 已包含；在本目录执行 `npm ci`、`npm run build` 即可重建外层 UI。
 - 最终应用：供应商提供相邻的 `phonecase-core` 及其依赖、设备配置和签名环境后，运行 `npm run tauri:build:default`。
+- 保留 `Makefile`、`build.ps1`、`.gitignore` 和 `.vscode/extensions.json`。`make run` / `make build` 继续可用；Windows 也可运行 `powershell -ExecutionPolicy Bypass -File ./build.ps1`。这些入口使用当前集成工程的 npm 锁文件。
 - 本目录没有核心代码、签名密钥和设备凭证，不能单独生成可运行的硬件程序。
 
 完整说明见当前仓库 `../docs/SUPPLIER_HANDOFF.md`；交付 ZIP 中位于 `docs/SUPPLIER_HANDOFF.md`。

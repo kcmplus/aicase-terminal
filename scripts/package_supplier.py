@@ -10,7 +10,8 @@ import zipfile
 root = Path(__file__).resolve().parents[1]
 source = root / 'supplier-host'
 required = ['dist/index.html', 'src/popomo/terminal.js', 'package-lock.json',
-            'src-tauri/Cargo.toml', 'src/skins/default/pages/Home.vue']
+            'src-tauri/Cargo.toml', 'src/skins/default/pages/Home.vue',
+            'Makefile', 'build.ps1', '.gitignore', '.vscode/extensions.json']
 for name in required:
     if not (source / name).is_file():
         raise SystemExit(f'Missing {name}; run npm run build:supplier first.')
@@ -25,16 +26,19 @@ name = f'aicase-terminal-supplier-display-only-{version}-{commit[:12]}{"-dirty" 
 output = root / 'release' / name
 output.parent.mkdir(exist_ok=True)
 excluded = {'node_modules', 'target', 'backup', 'gen', '.git', 'preview-images'}
+hidden_project_files = {'.gitignore', '.vscode/extensions.json'}
 files = {}
 for path in sorted(source.rglob('*')):
     rel = path.relative_to(source)
-    if any(part in excluded or part.startswith('.') for part in rel.parts):
+    if any(part in excluded for part in rel.parts):
+        continue
+    if any(part.startswith('.') for part in rel.parts) and rel.as_posix() not in hidden_project_files:
         continue
     if path.is_symlink():
         raise SystemExit(f'Unexpected symlink: {rel}')
     if not path.is_file():
         continue
-    if path.suffix in {'.key', '.pub', '.log', '.map', '.zip'} or path.name == 'build.ps1':
+    if path.suffix in {'.key', '.pub', '.log', '.map', '.zip'}:
         raise SystemExit(f'Unexpected sensitive or generated file: {rel}')
     files['phonecase-diy-gy/' + rel.as_posix()] = path.read_bytes()
 
@@ -56,6 +60,8 @@ with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as archive:
         archive.writestr(name, data)
 with zipfile.ZipFile(output) as archive:
     assert archive.testzip() is None
+    for name in required:
+        assert 'phonecase-diy-gy/' + name in archive.namelist(), f'Missing delivery file: {name}'
     for name, digest in metadata['sha256'].items():
         assert hashlib.sha256(archive.read(name)).hexdigest() == digest
 digest = hashlib.sha256(output.read_bytes()).hexdigest()

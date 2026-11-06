@@ -60,7 +60,16 @@ GitHub Actions 的 `Build supplier integration package` 使用 Node.js 24，分�
 - 系统、支付、货道、打印页面保留原供应商操作。原包的手机壳管理路由本来被注释，本次未擅自开启。
 - 供应商原语言资源和后台语言机制保持独立；语言读取失败时用随包英文资源显示页面，让终端继续重连。普通浏览器显示等待宿主，不使用示例设备。POPOMO 首页继续使用 en-US / zh-CN，支持原有 `lang` 参数。
 - 前端依赖统一使用 npm 锁文件，Vite / Vue 插件升级到兼容当前路由依赖的版本，补齐共享键盘依赖，移除强制安装 Windows 原生解析器的依赖；保留了实际构建验证的锁文件。
-- 已修复原打包配置中不存在的 64x64 图标引用。更新签名备份及含密码脚本不入仓库、不入交付包。
+- 已修复原打包配置中不存在的 64x64 图标引用。更新签名备份不入仓库、不入交付包；保留 `build.ps1` 入口，但其中不包含任何签名密码。
+
+## 工程文件保留与替换范围
+
+- 交付包保留 `Makefile`、`build.ps1`、`.gitignore` 和 `.vscode/extensions.json`，打包后检查这些文件确实在 ZIP 中。
+- `make run`、`make build`、`make clean`、`make clippy` 保留。当前依赖使用 npm 锁文件，Makefile 命令对应调整为 npm；`make build-shared-ui` 保留为整套前端编译的兼容入口，因为共享组件已由主前端直接从源码编译。
+- Windows `build.ps1` 优先使用外部配置的 `TAURI_SIGNING_PRIVATE_KEY`，未配置时可读取供应商本机 `src-tauri/backup/app-signing.key` 的路径。加密密码由环境变量提供，不硬编码到脚本。
+- 原 `pnpm-lock.yaml` / `pnpm-workspace.yaml` 已由当前的 `package-lock.json` 替代，不附带与修改后依赖不一致的旧锁文件。依赖安装执行 `npm ci`；如供应商需要继续使用 pnpm，应基于当前 package.json 重新生成锁文件。
+- `.git`、依赖目录、Rust 编译产物及自动生成的 `src-tauri/gen` 不随包交付。签名备份、真实设备配置和凭证继续由供应商自行保管。
+- 交付包不是删除清单。合并时保留供应商现有的核心模块、驱动、设备配置及本机签名文件，不要使用带删除选项的目录同步覆盖完整工程。
 
 ## 真机验收
 
