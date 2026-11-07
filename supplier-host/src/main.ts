@@ -23,6 +23,10 @@ async function load_bootstrap(skin_id: string): Promise<() => Promise<void>> {
 }
 
 async function start() {
+    if (import.meta.env.DEV && import.meta.env.VITE_MOCK === '1') {
+        const {installMockHost} = await import('./mock');
+        installMockHost();
+    }
     const skin_id = import.meta.env.VITE_SKIN_ID || 'default'
     let retry_count = 0;
     async function launch() {

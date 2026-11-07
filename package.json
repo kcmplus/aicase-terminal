@@ -11,9 +11,11 @@
     "package": "npm run build && python3 scripts/package.py",
     "build:embedded": "tsc --noEmit && vite build --config vite.embedded.config.ts",
     "dev:supplier": "npm run build:embedded && npm --prefix supplier-host run dev",
+    "dev:mock": "npm run build:embedded && npm --prefix supplier-host run dev:mock",
     "build:supplier": "npm run build:embedded && npm --prefix supplier-host run build",
     "package:supplier": "npm run build:supplier && python3 scripts/package_supplier.py",
-    "test:supplier": "playwright test"
+    "test:supplier": "playwright test",
+    "test:mock": "playwright test --config playwright.mock.config.ts"
   },
   "dependencies": {
     "@tauri-apps/api": "2.11.1",
