@@ -43,7 +43,7 @@ const deleteKey = () => {
 
 const verifyPassword = async () => {
   let password: string | undefined;
-  try { password = (await get_setting_options())?.device_password; } catch { /* Fail closed while disconnected. */ }
+  try { password = (await get_setting_options())?.device_password || '168168'; } catch { /* Fail closed while disconnected. */ }
   if (!password || password_input.value !== password) {
     password_error.value = true;
     password_input.value = '';

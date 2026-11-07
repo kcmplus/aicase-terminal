@@ -59,7 +59,7 @@ test('home, password gate, all maintenance pages and return keep a single termin
   await expect(page).toHaveURL(/#\/$/);
   await page.keyboard.press('F8');
   await expect(page.locator('[data-skbtn="{confirm}"]')).toBeVisible();
-  await enterPassword(page,'111111');
+  await enterPassword(page,'168168');
   await expect(page.locator('.admin-shell')).toHaveCount(0);
   await enterPassword(page);
   await expect(page.locator('.admin-shell')).toBeVisible();
@@ -84,7 +84,7 @@ test('home, password gate, all maintenance pages and return keep a single termin
   await page.screenshot({path:'release/qa/supplier-home-landscape.png',fullPage:true});
 });
 
-test('eight touch-style pointer releases open maintenance; missing password cannot authorize',async({page})=>{
+test('eight touch-style pointer releases open maintenance; missing password uses supplier default',async({page})=>{
   await mockHost(page,null);await page.goto('/?preview=1&lang=en-US');
   await expect(page.locator('.popomo-terminal .qr')).toBeVisible();
   await expect(page.locator('.preview-bar')).toHaveCount(0);
@@ -93,8 +93,7 @@ test('eight touch-style pointer releases open maintenance; missing password cann
   await page.mouse.click(1060,1900);
   await expect(page.locator('[role="dialog"]')).toHaveAttribute('aria-hidden','false');
   await enterPassword(page,'168168');
-  await expect(page.locator('.admin-shell')).toHaveCount(0);
-  await expect(page.locator('[data-skbtn="{confirm}"]')).toBeVisible();
+  await expect(page.locator('.admin-shell')).toBeVisible();
 });
 
 test('without a native host the production shell shows a waiting state, never sample data',async({page})=>{
@@ -103,7 +102,7 @@ test('without a native host the production shell shows a waiting state, never sa
   await expect(page.locator('.qr,.preview-bar')).toHaveCount(0);
   await page.keyboard.press('F8');
   await expect(page.locator('[role="dialog"]')).toHaveAttribute('aria-hidden','false');
-  await enterPassword(page);
+  await enterPassword(page,'168168');
   await expect(page.locator('.admin-shell')).toHaveCount(0);
 });
 
