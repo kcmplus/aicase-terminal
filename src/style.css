@@ -51,3 +51,14 @@ header{min-height:48px}.preview-bar{min-height:26px}
 .image-unavailable .preview-fallback{display:flex}.preview-large{flex-basis:64px;width:64px;height:84px;background:#f4f5ef;border-color:#ffffff26}
 .job-copy{min-width:0;flex:1}.job-copy p{overflow-wrap:anywhere}.confirmation-identity{flex:1;min-width:0}
 @media(max-width:600px){.order-preview{flex-basis:32px;width:32px;height:44px;border-radius:6px}.preview-large{flex-basis:44px;width:44px;height:62px}.job-identity{gap:10px}.job-identity h2{font-size:18px}.progress-number{font-size:28px}.order-queue .waiting-list li{gap:9px}.position{width:20px;font-size:16px}.confirmation-queue li{gap:10px}}
+/* Device connections are diagnostic information, independent of the scan entry. */
+.device-status-panel{background:#fff;border:1px solid #dce3d5;border-radius:16px;padding:16px 20px;text-align:left}
+.device-status-panel h2{font-size:15px;font-weight:600;margin:0 0 12px;color:#263b30}
+.device-status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.device-status-item{display:flex;flex-direction:column;gap:7px;padding:10px;border-radius:10px;background:#edf3eb;min-width:0}
+.device-status-item span{font-size:11px;line-height:1.4;color:#53694e;overflow-wrap:anywhere}
+.device-status-item strong{font-size:14px;line-height:1.4;color:#276349;font-weight:600}
+.device-status-item.status-attention{background:#fff0d8}.status-attention strong{color:#8b5c16}
+.device-status-item.status-unknown{background:#f0f0ed}.status-unknown strong{color:#6c7369}
+.device-status-notice{font-size:12px;line-height:1.7;color:#805b29;margin:12px 0 0}
+@media(max-width:600px){.device-status-panel{padding:12px 14px}.device-status-grid{gap:6px}.device-status-item{padding:8px}.device-status-item strong{font-size:12px}.device-status-item span{font-size:10px}.device-status-panel h2{font-size:13px;margin-bottom:9px}.device-status-notice{font-size:11px}}

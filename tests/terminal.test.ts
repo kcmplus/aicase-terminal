@@ -34,9 +34,11 @@ test('QR links use the configured host H5 address and native identity, discardin
  }
  assert.throws(()=>designUrl({...data,deviceId:'401&token=secret'},'en-US'));
 });
-test('unavailable stations hide QR; printing is not interpreted as collected',()=>{
+test('only explicit station controls hide QR; hardware status does not block scanning',()=>{
  assert.equal(unavailable(snapshot(raw('ready'))),null);assert.equal(unavailable(snapshot(raw('printing'))),null);
- assert.equal(unavailable(snapshot(raw('empty'))),'empty');assert.equal(unavailable(snapshot(raw('locked'))),'paused');assert.equal(unavailable(snapshot(raw('offline'))),'offline');
+ assert.equal(unavailable(snapshot(raw('empty'))),null);assert.equal(unavailable(snapshot(raw('locked'))),'paused');assert.equal(unavailable(snapshot(raw('offline'))),null);
+ const failed=raw();failed.order={print_status:'print_failed'};assert.equal(unavailable(snapshot(failed)),null);
+ const disabled=raw();(disabled.features as any).show_h5_entry=false;assert.equal(unavailable(snapshot(disabled)),'paused');
  const done=snapshot(raw('delivered'));assert.equal(done.printStatus,'deliver_success');assert.ok(!('collected' in done));
 });
 
@@ -47,10 +49,10 @@ class Host implements Bridge{
  emit(event:string,payload?:unknown){this.listeners.get(event)?.(payload);}
 }
 async function until(condition:()=>boolean){for(let i=0;i<100&&!condition();i++)await new Promise(resolve=>setTimeout(resolve,1));assert.ok(condition());}
-test('listeners precede handshake, stock updates immediately invalidate QR, cleanup removes handlers',async()=>{
+test('listeners precede handshake, stock updates keep scan data while refreshing, cleanup removes handlers',async()=>{
  const host=new Host(),views:View[]=[];const app=new TerminalController(host,view=>views.push(view),60000);
  try{await app.start();assert.equal(views.at(-1)?.data?.stockCount,9);
-  host.data=fixture('empty');host.emit('stock_info_changed');assert.equal(views.at(-1)?.data,null);
+  host.data=fixture('empty');host.emit('stock_info_changed');assert.equal(views.at(-1)?.data?.stockCount,9);
   await until(()=>views.at(-1)?.data?.stockCount===0);
   assert.ok(host.calls.every(command=>command==='ui_inited'||command.startsWith('get_')));
  }finally{app.dispose();}assert.equal(host.listeners.size,0);
@@ -78,11 +80,11 @@ test('disposing while a listener is pending removes the eventual listener',async
  host.listen=()=>new Promise(done=>{resolve=done;});
  const app=new TerminalController(host,()=>{},60000,1000);const started=app.start();app.dispose();resolve(()=>{removed=true;});await started;assert.equal(removed,true);assert.equal(host.calls.length,0);
 });
-test('print warning immediately blocks QR and persists across reads until explicit clear',async()=>{
+test('print warning stays separate from QR errors and persists until explicit clear',async()=>{
  const host=new Host(),views:View[]=[];const app=new TerminalController(host,view=>views.push(view),60000);
- try{await app.start();host.emit('print_warning',{warning:'shipping_full'});assert.equal(views.at(-1)?.error,'print-failed');
-  await until(()=>views.at(-1)?.data!==null);await app.retry();assert.equal(views.at(-1)?.error,'print-failed');
-  host.emit('print_warning',{warning:'none'});assert.equal(views.at(-1)?.error,null);
+ try{await app.start();host.emit('print_warning',{warning:'shipping_full'});assert.equal(views.at(-1)?.error,null);assert.equal(views.at(-1)?.warning,'shipping_full');
+  await until(()=>views.at(-1)?.data!==null);await app.retry();assert.equal(views.at(-1)?.error,null);assert.equal(views.at(-1)?.warning,'shipping_full');
+  host.emit('print_warning',{warning:'none'});assert.equal(views.at(-1)?.error,null);assert.equal(views.at(-1)?.warning,null);
  }finally{app.dispose();}
 });
 

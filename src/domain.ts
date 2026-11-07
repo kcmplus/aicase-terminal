@@ -42,8 +42,6 @@ export function designUrl(data:Pick<Snapshot,'storefront'|'deviceId'|'shopId'>,l
 }
 export function unavailable(data:Snapshot):string|null{
   if(data.locked||!data.showEntry)return 'paused';
-  if(Object.values(data.devices).some(value=>value==='disconnected'||value==='connecting'))return 'offline';
-  if(data.stockCount===0)return 'empty';
-  if(data.printStatus?.endsWith('_failed'))return 'print-failed';
+  // Hardware readiness is shown separately. Scanning only opens the mobile site.
   return null;
 }
