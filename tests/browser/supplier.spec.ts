@@ -13,6 +13,9 @@ async function mockHost(page:Page,password:string|null='739251') {
     const state={data,calls:[] as string[],listeners:{} as Record<number,{event:string;handler:number}>};
     let next=1;const callbacks=new Map<number,(event:unknown)=>void>();
     const w=window as any;w.__hostTest=state;w.isTauri=true;
+    w.__hostTest.emit=(event:string,payload:unknown)=>{
+      for(const [id,listener] of Object.entries(state.listeners))if(listener.event===event)callbacks.get(listener.handler)?.({event,id:Number(id),payload});
+    };
     w.__TAURI_EVENT_PLUGIN_INTERNALS__={unregisterListener:()=>{}};
     w.__TAURI_INTERNALS__={
       transformCallback(fn:(event:unknown)=>void){const id=next++;callbacks.set(id,fn);return id;},
@@ -82,6 +85,44 @@ test('home, password gate, all maintenance pages and return keep a single termin
   await page.screenshot({path:'release/qa/supplier-home-portrait.png',fullPage:true});
   await page.setViewportSize({width:1920,height:1080});
   await page.screenshot({path:'release/qa/supplier-home-landscape.png',fullPage:true});
+});
+
+test('hardware states and warnings are visible without hiding a valid QR',async({page})=>{
+  await mockHost(page);
+  await page.addInitScript(()=>{
+    const device=(window as any).__hostTest.data.get_device_info;
+    device.printer.state='disconnected';device.gripper.state='connecting';device.netproxy.state='connected';
+  });
+  await page.goto('/?lang=en-US');
+  await expect(page.locator('.qr')).toBeVisible();
+  await expect(page.locator('[data-device="printer"]')).toContainText('Disconnected');
+  await expect(page.locator('[data-device="gripper"]')).toContainText('Connecting');
+  await expect(page.locator('[data-device="netproxy"]')).toContainText('Connected');
+  const qr=await page.locator('.qr').innerHTML();
+  await page.evaluate(()=>{(window as any).__hostTest.emit('print_warning',{warning:'shipping_full'});});
+  await expect(page.locator('.device-status-notice')).toContainText('Output tray full');
+  await expect(page.locator('.qr')).toBeVisible();
+  expect(await page.locator('.qr').innerHTML()).toBe(qr);
+  await page.setViewportSize({width:1920,height:1080});
+  await page.screenshot({path:'release/qa/supplier-device-status.png',fullPage:true});
+  await page.setViewportSize({width:393,height:852});
+  await expect(page.locator('.qr')).toBeVisible();
+  await expect(page.locator('[data-device="netproxy"]')).toBeVisible();
+  expect(await page.locator('.popomo-terminal').evaluate(host=>{
+    const root=host.shadowRoot!.querySelector<HTMLElement>('#app')!;return root.scrollWidth<=root.clientWidth;
+  })).toBe(true);
+  await page.evaluate(()=>{
+    const host=(window as any).__hostTest;
+    host.data.get_device_info.printer.state='online';host.emit('device_state_changed',{});
+    host.emit('print_warning',{warning:'none'});
+  });
+  await expect(page.locator('[data-device="printer"]')).toContainText('Online');
+  await expect(page.locator('.device-status-notice')).not.toContainText('Output tray full');
+  await page.evaluate(()=>{
+    const host=(window as any).__hostTest;host.data.get_machine_info.h5_base_url='javascript:invalid';host.emit('machine_info_changed',{});
+  });
+  await expect(page.locator('.qr')).toHaveCount(0);
+  await expect(page.locator('.scan')).toContainText('The mobile website has not been configured.');
 });
 
 test('eight touch-style pointer releases open maintenance; missing password uses supplier default',async({page})=>{

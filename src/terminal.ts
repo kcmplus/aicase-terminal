@@ -64,8 +64,30 @@ function previewFailed(event:Event){
 root.addEventListener('error',previewFailed,true);
 let queuePage=0;
 const arrivals=new OrderArrivals();
+function deviceStatus(data:Snapshot|null){
+  const states:Record<string,[string,string]>={disconnected:['Disconnected','离线'],connecting:['Connecting','连接中'],connected:['Connected','已连接'],online:['Online','在线']};
+  const labels=[['printer','Printer','打印机'],['gripper','Gripper','机械臂'],['netproxy','Network / WebSocket','网络 / WebSocket']] as const;
+  const cards=labels.map(([key,en,zh])=>{
+    const state=data?.devices[key];
+    const tone=!state?'unknown':state==='online'||state==='connected'?'online':'attention';
+    return `<div class="device-status-item status-${tone}" data-device="${key}"><span>${say(en,zh)}</span><strong>${state?say(...states[state]):say('Unavailable','暂未读取')}</strong></div>`;
+  }).join('');
+  const notices:string[]=[];
+  if(data){
+    if(Object.values(data.devices).some(state=>state==='disconnected'||state==='connecting'))notices.push(say('Some device connections are unavailable. Scanning still opens the mobile site.','部分设备尚未连接，仍可扫码打开手机端。'));
+    if(data.stockCount===0)notices.push(say('No cases currently available.','当前暂无可用手机壳。'));
+    if(data.locked)notices.push(say('Station locked.','设备已锁定。'));
+    if(!data.showEntry)notices.push(say('Mobile entry disabled in settings.','后台已关闭手机端入口。'));
+    if(data.printStatus?.endsWith('_failed'))notices.push(printLabel(data.printStatus));
+  }
+  if(view.warning){
+    const warnings:Record<string,[string,string]>={printer_offline:['Printer offline','打印机离线'],gripper_offline:['Gripper offline','机械臂离线'],shipping_full:['Output tray full','出货仓已满']};
+    notices.push(warnings[view.warning]?say(...warnings[view.warning]):say('Device warning — staff assistance needed.','设备告警，请工作人员检查。'));
+  }
+  return `<section class="device-status-panel" aria-label="${say('Device connections','设备连接状态')}"><h2>${say('Device status','设备状态')}</h2><div class="device-status-grid">${cards}</div>${notices.length?`<p class="device-status-notice" role="status">${notices.map(esc).join(' ')}</p>`:''}</section>`;
+}
 function dashboard(data:Snapshot|null){
-  if(!data)return `<section class="queue-dashboard"><div class="current-job idle-job"><p class="eyebrow">${say('PRINTING AT THIS STATION','设备打印动态')}</p><h2>${say('Connecting to the station','正在连接设备')}</h2><p>${say('Orders will appear once connected.','连接成功后显示打印进度和排队订单。')}</p></div></section>`;
+  if(!data)return `<section class="queue-dashboard">${deviceStatus(null)}<div class="current-job idle-job"><p class="eyebrow">${say('PRINTING AT THIS STATION','设备打印动态')}</p><h2>${say('Connecting to the station','正在连接设备')}</h2><p>${say('Orders will appear once connected.','连接成功后显示打印进度和排队订单。')}</p></div></section>`;
   const groups=queueGroups(data.orders,data.currentOrder);
   const unread=arrivals.ids().filter(id=>groups.confirmation.some(order=>order.tradeNo===id));
   const current=data.currentOrder&&queueState(data.currentOrder)==='printing'?data.currentOrder:null;
@@ -77,6 +99,7 @@ function dashboard(data:Snapshot|null){
   const confirmationPages=Math.max(1,Math.ceil(groups.confirmation.length/confirmationSize)),confirmationPage=queuePage%confirmationPages;
   const visible=groups.waiting.slice(waitingPage*pageSize,(waitingPage+1)*pageSize);
   return `<section class="queue-dashboard" aria-label="${say('Printing and queue','打印进度与队列')}">
+    ${deviceStatus(data)}
     ${unread.length?`<aside class="arrival-notice" role="status" aria-live="polite"><div><strong>${say('New order received','新订单已到达设备')} · ${unread.length}</strong><p>${say('Please confirm your arrival on your phone.','请在手机上核对订单并确认到场。')}</p></div></aside>`:''}
 
     <section class="current-job ${failed?'job-error':activeStatus?'':'idle-job'}" aria-label="${say('Current print','当前打印')}">

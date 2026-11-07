@@ -1,5 +1,5 @@
 import {events,snapshot,type Bridge,type Snapshot} from './domain';
-export type View={data:Snapshot|null;loading:boolean;error:string|null;updatedAt:number|null};
+export type View={data:Snapshot|null;loading:boolean;error:string|null;updatedAt:number|null;warning?:string|null};
 function timeout<T>(operation:Promise<T>,milliseconds:number):Promise<T>{
   return new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('timeout')),milliseconds);operation.then(value=>{clearTimeout(timer);resolve(value);},error=>{clearTimeout(timer);reject(error);});});
 }
@@ -10,7 +10,7 @@ export class TerminalController{
   private warning:string|null=null;
   private retryTimer:ReturnType<typeof setTimeout>|undefined;
   constructor(private bridge:Bridge,private render:(view:View)=>void,private interval=15000,private deadline=10000){}
-  private publish(view:View){if(!this.stopped){this.view=view;this.render({...view,error:view.error||this.warning});}}
+  private publish(view:View){if(!this.stopped){this.view=view;this.render({...view,warning:this.warning});}}
   async start(){
     if(this.stopped||this.starting||this.initialized)return;
     clearTimeout(this.retryTimer);this.starting=true;
@@ -20,11 +20,11 @@ export class TerminalController{
         const pending=this.bridge.listen(event,(payload)=>{
           if(event==='print_warning'){
             const warning=(payload as {warning?:unknown}|null)?.warning;
-            this.warning=warning==='none'?null:'print-failed';
+            this.warning=warning==='none'?null:typeof warning==='string'?warning:'unknown';
             this.publish(this.view);
             void this.refresh();
           }else if(event==='order_print_progress')void this.refresh();
-          else this.invalidate(event.startsWith('order_'));
+          else this.invalidate(!['machine_info_changed','setting_options_changed','setting_configs_changed','setting_lock_changed'].includes(event));
         });
         let accepted=false;
         try{const off=await timeout(pending,this.deadline);accepted=true;if(this.stopped){off();return;}this.subscriptions.push(off);}

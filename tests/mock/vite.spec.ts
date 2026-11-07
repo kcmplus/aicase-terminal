@@ -24,7 +24,8 @@ test('Vite mock boots without injected host, supports scenarios and administrati
   await expect(page.locator('.progress-number')).toContainText('46');
   await expect.poll(()=>page.locator('.order-preview-image').first().evaluate((image:HTMLImageElement)=>image.naturalWidth)).toBeGreaterThan(0);
   await page.getByLabel('Mock scenario').selectOption('offline');
-  await expect(page.locator('.qr')).toHaveCount(0);
+  await expect(page.locator('.qr')).toBeVisible();
+  for(const device of ['printer','gripper','netproxy'])await expect(page.locator(`[data-device="${device}"]`)).toContainText('Disconnected');
   await page.getByLabel('Mock scenario').selectOption('ready');
   await expect(page.locator('.qr')).toBeVisible();
   await page.getByRole('button',{name:'模拟新订单'}).click();
