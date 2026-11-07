@@ -30,6 +30,7 @@ async function mockHost(page:Page,password:string|null='739251') {
           for(const [id,listener] of Object.entries(state.listeners)){
             if(listener.event==='loading_finished')callbacks.get(listener.handler)?.({event:listener.event,id:Number(id),payload:null});
           }
+          for(const item of Object.values(state.data.get_device_info as object))w.__hostTest.emit('device_state_changed',item);
           return;
         }
         if(command in state.data)return (state.data as Record<string,unknown>)[command];
@@ -113,16 +114,29 @@ test('hardware states and warnings are visible without hiding a valid QR',async(
   })).toBe(true);
   await page.evaluate(()=>{
     const host=(window as any).__hostTest;
-    host.data.get_device_info.printer.state='online';host.emit('device_state_changed',{});
+    host.emit('device_state_changed',{dtype:'printer',state:'online'});
     host.emit('print_warning',{warning:'none'});
   });
   await expect(page.locator('[data-device="printer"]')).toContainText('Online');
+  await expect(page.locator('[data-device="gripper"]')).toContainText('Connecting');
   await expect(page.locator('.device-status-notice')).not.toContainText('Output tray full');
   await page.evaluate(()=>{
     const host=(window as any).__hostTest;host.data.get_machine_info.h5_base_url='javascript:invalid';host.emit('machine_info_changed',{});
   });
   await expect(page.locator('.qr')).toHaveCount(0);
   await expect(page.locator('.scan')).toContainText('The mobile website has not been configured.');
+});
+
+test('QR remains visible while awaiting the first device notification',async({page})=>{
+  await mockHost(page);
+  await page.addInitScript(()=>{(window as any).__hostTest.data.get_device_info={};});
+  await page.goto('/?lang=en-US');
+  await expect(page.locator('.qr')).toBeVisible();
+  for(const key of ['printer','gripper','netproxy'])await expect(page.locator(`[data-device="${key}"]`)).toContainText('Awaiting status');
+  await page.evaluate(()=>{(window as any).__hostTest.emit('device_state_changed',{dtype:'gripper',state:'online'});});
+  await expect(page.locator('[data-device="gripper"]')).toContainText('Online');
+  await expect(page.locator('[data-device="printer"]')).toContainText('Awaiting status');
+  await expect(page.locator('.qr')).toBeVisible();
 });
 
 test('eight touch-style pointer releases open maintenance; missing password uses supplier default',async({page})=>{
@@ -165,6 +179,7 @@ test('legacy credentials cannot enable payment handoff or cloud polling on the d
   await expect(page.locator('.popomo-terminal .qr')).toBeVisible();
   const calls=await page.evaluate(()=>(window as any).__hostTest.calls as string[]);
   expect(calls.filter(x=>['get_order_by_id','select_order_payment','create_order'].includes(x))).toEqual([]);
+  expect(calls.filter(x=>x==='get_device_info')).toEqual([]);
   expect(requests).toEqual([]);
   expect(calls.filter(x=>x==='get_order_list').length).toBeGreaterThan(1);
 });

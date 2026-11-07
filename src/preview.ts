@@ -20,14 +20,15 @@ export function fixture(scenario:Scenario='ready'):Record<string,unknown>{return
   ui_inited:null
 };}
 export function previewBridge():Bridge&{setScenario(value:Scenario):void;addOrder():void;confirmArrival(tradeNo:string):boolean}{
-  let scenario:Scenario='ready',counter=100;const handlers=new Map<string,Set<()=>void>>();
+  let scenario:Scenario='ready',counter=100;const handlers=new Map<string,Set<(payload?:unknown)=>void>>();
+  const pushDevices=()=>handlers.get('device_state_changed')?.forEach(fn=>fn(fixture(scenario).get_device_info));
   let extra:Array<Record<string,unknown>>=[];const confirmed=new Set<string>();
   const changed=()=>handlers.get('order_info_changed')?.forEach(fn=>fn());
   const rows=()=>[...fixture(scenario).get_order_list as Array<Record<string,unknown>>,...extra].map(row=>confirmed.has(String(row.trade_no))?{...row,pay_status:'success',status:'polling'}:row);
   return {
-    async invoke(command:Command){if(scenario==='error')throw Error('preview-error');return command==='get_order_list'?rows():fixture(scenario)[command];},
+    async invoke(command:Command){if(scenario==='error')throw Error('preview-error');if(command==='ui_inited')pushDevices();return command==='get_order_list'?rows():fixture(scenario)[command];},
     async listen(event,callback){const listeners=handlers.get(event)||new Set();handlers.set(event,listeners);listeners.add(callback);return ()=>{listeners.delete(callback);};},
-    setScenario(value){scenario=value;extra=[];confirmed.clear();handlers.get('machine_info_changed')?.forEach(fn=>fn());},
+    setScenario(value){scenario=value;extra=[];confirmed.clear();handlers.get('machine_info_changed')?.forEach(fn=>fn());pushDevices();},
     addOrder(){counter++;extra.push({trade_no:`DEMO-ORDER-${counter}`,business_number:`17936800000001${counter}`,goods_id:82,model_id:'iPhone 17',effect_image:'/preview-images/ocean.webp',pay_status:'idle',print_status:'idle',status:'none'});changed();},
     confirmArrival(tradeNo){const row=rows().find(row=>row.trade_no===tradeNo);if(!row||row.pay_status!=='idle'||row.print_status!=='idle'||!['none','polling'].includes(String(row.status)))return false;confirmed.add(tradeNo);changed();return true;}
   };

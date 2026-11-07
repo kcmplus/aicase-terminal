@@ -69,8 +69,9 @@ function deviceStatus(data:Snapshot|null){
   const labels=[['printer','Printer','打印机'],['gripper','Gripper','机械臂'],['netproxy','Network / WebSocket','网络 / WebSocket']] as const;
   const cards=labels.map(([key,en,zh])=>{
     const state=data?.devices[key];
-    const tone=!state?'unknown':state==='online'||state==='connected'?'online':'attention';
-    return `<div class="device-status-item status-${tone}" data-device="${key}"><span>${say(en,zh)}</span><strong>${state?say(...states[state]):say('Unavailable','暂未读取')}</strong></div>`;
+    const known=state&&state!=='unknown';
+    const tone=!known?'unknown':state==='online'||state==='connected'?'online':'attention';
+    return `<div class="device-status-item status-${tone}" data-device="${key}"><span>${say(en,zh)}</span><strong>${known?say(...states[state]):say('Awaiting status','等待状态通知')}</strong></div>`;
   }).join('');
   const notices:string[]=[];
   if(data){

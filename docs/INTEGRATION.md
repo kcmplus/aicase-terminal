@@ -21,7 +21,6 @@
 | --- | --- | --- |
 | `ui_inited` | 事件订阅后通知宿主 UI 就绪 | `global.ts` |
 | `get_machine_info` | 设备 / 商家编号、H5 地址、允许展示的联系电话 | `machine.ts` |
-| `get_device_info` | 打印机、机械臂、网络代理状态 | `system.ts` |
 | `get_setting_options` | 名称、序列号、锁定状态 | `setting.ts` |
 | `get_setting_option_config` | `show_h5_entry` 入口开关 | `setting.ts` |
 | `get_stock_list` | 本机有效库存统计 | `stock.ts` |
@@ -31,9 +30,9 @@
 
 均无入参。返回值按供应商原始类型校验；身份字段必须是字符串，数量为非负整数，开关为布尔值。若实际宿主返回格式不同，应先双方确认协议再调整，避免把格式错误当成正常设备。
 
-订阅 `loading_finished`、`machine_info_changed`、`device_state_changed`、`setting_options_changed`、`setting_configs_changed`、`setting_lock_changed`、`stock_info_changed`、`product_info_changed`、`order_info_changed`、`order_print_started`、`order_print_finished`、`order_print_status`、`order_print_progress`、`print_warning`。事件 payload 不作为可信完整快照，收到后重读。
+订阅 `loading_finished`、`machine_info_changed`、`device_state_changed`、`setting_options_changed`、`setting_configs_changed`、`setting_lock_changed`、`stock_info_changed`、`product_info_changed`、`order_info_changed`、`order_print_started`、`order_print_finished`、`order_print_status`、`order_print_progress`、`print_warning`。`device_state_changed` 按 DeviceItem 校验并合并单个设备状态（也接受 DeviceItem 映射），不发起查询；其他数据变更事件仍触发重读。硬件状态未通知时显示“等待状态通知”，不影响有效二维码。
 
-读取命令 10 秒超时，不会永久卡住界面。故障收起二维码；下一次事件或 15 秒轮询恢复。设备/库存变更时立即清除旧二维码并丢弃并发旧结果；高频进度通知合并读取。宿主初始化失败时每 15 秒自动重试。语言由构建配置或启动参数决定，页面没有折叠或操作入口。
+读取命令 10 秒超时，不会永久卡住界面。身份或读取故障收起二维码；下一次事件或 15 秒轮询恢复。身份/配置变更时清除旧二维码并丢弃并发旧结果；库存变更保留扫码入口。硬件状态不参与轮询；高频进度通知合并读取。宿主初始化失败时每 15 秒自动重试。语言由构建配置或启动参数决定，页面没有折叠或操作入口。
 
 ## 必须确认的手机订单闭环
 
@@ -80,7 +79,7 @@
 | --- | --- | --- |
 | `ui_inited()` | global.ts | 无参数，监听事件后通知 |
 | `get_machine_info()` | machine.ts | device_id、shop_id、h5_base_url、联系电话显示开关一致 |
-| `get_device_info()` | system.ts | printer/gripper/netproxy 的 dtype、state 一致；MDB 不作为本页收款入口 |
+| `device_state_changed` 事件 | system.ts | 使用 printer/gripper/netproxy 的 dtype、state；不再调用 get_device_info，实际事件 payload 待真机确认 |
 | `get_setting_options()` | setting.ts | device_id、device_num、device_name、is_lock 一致；过滤 device_password |
 | `get_setting_option_config()` | setting.ts | show_h5_entry 一致；enable_order_queue 由供应商配置，当前 UI 不更改开关 |
 | `get_stock_list()` | stock.ts | slot/count/disabled/model_id 一致 |
@@ -88,7 +87,7 @@
 | `get_print_order()` | order.ts | OrderItem 或 null，使用 trade_no 关联当前任务 |
 | `get_print_progress()` | order.ts | 总进度 progress；原接口没有 trade_no，前后核对当前订单减少切单误配 |
 
-当前订阅的 16 个事件在 ZIP 枚举中均存在；普通事件只触发重读，print_warning 的 warning 字段与原类型一致。供应商 `PayType.Free = "free"` 确实存在，`select_order_payment` 的入参是 `{trade_no, pay_type}`，两个值均为字符串；该写接口仅作为历史契约记录，当前终端首页不会调用它，也不会调用 `get_order_by_id` 进行放行核验。客户确认归 H5 处理，见 [职责说明](CLOUD_CONNECTION.md)。
+当前订阅的 16 个事件在 ZIP 枚举中均存在；设备状态事件直接合并更新，其余数据变更事件触发重读，print_warning 的 warning 字段与原类型一致。供应商 `PayType.Free = "free"` 确实存在，`select_order_payment` 的入参是 `{trade_no, pay_type}`，两个值均为字符串；该写接口仅作为历史契约记录，当前终端首页不会调用它，也不会调用 `get_order_by_id` 进行放行核验。客户确认归 H5 处理，见 [职责说明](CLOUD_CONNECTION.md)。
 
 构建前会执行 `tests/vendor-contract.test.ts`，从原始 TS 语法树核对本页命令、事件及支付适配参数，避免仅靠模拟数据自洽。
 
@@ -98,6 +97,7 @@
 2. `get_order_list()` 没说明已付/未付筛选，列表出现不等于我方已收款。需确认来源区分、初始 pay_status、排序和 free 后状态。
 3. `effect_image` 是 string，未规定 URL/绝对路径/相对路径；本页支持 HTTP(S) 与可授权的绝对本地图片路径。相对路径需明确基准目录；宿主需放行对应 asset scope/CSP。
 4. Rust 工程、命令注册、窗口事件权限、排队开关和真实返回值尚未交付验证。TS 文件只能证明接口声明匹配，不能证明命令已经在运行中的终端实现。
-5. 设备/商家 ID 当前额外要求为十进制数字字符串（联调值 401/146），商品 ID 为正整数；若供应商使用其他格式，需要提前确认调整。
+5. 需确认 `device_state_changed` 的实际 payload 与 `ui_inited` 后初始状态推送。前端不会主动查询或假定未通知的设备在线。
+6. 设备/商家 ID 当前额外要求为十进制数字字符串（联调值 401/146），商品 ID 为正整数；若供应商使用其他格式，需要提前确认调整。
 
-原 ZIP 还包含文件复制、删除、硬件测试等接口。本页面没有引入这些模块或执行这些操作；通过自己的最小适配层调用 9 个展示命令，不额外调用 get_order_by_id 或 select_order_payment。
+原 ZIP 还包含文件复制、删除、硬件测试等接口。本页面没有引入这些模块或执行这些操作；通过自己的最小适配层调用 8 个展示命令，不额外调用 get_order_by_id 或 select_order_payment。

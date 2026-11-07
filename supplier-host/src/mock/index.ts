@@ -78,8 +78,12 @@ export function installMockHost() {
     if(rows.length && scenario==='delivered')Object.assign(rows[0],{print_status:'deliver_success',status:'success'});
     return [...rows,...extra.map(id=>order(id,false))];
   };
+  const pushDeviceStates = async () => {
+    for(const dtype of ['printer','gripper','netproxy'])await emit('device_state_changed',{dtype,state:scenario==='offline'?'disconnected':'online'});
+  };
   const notify = async () => {
     for(const event of ['machine_info_changed','setting_configs_changed','setting_options_changed','stock_info_changed','order_info_changed'])await emit(event,{});
+    await pushDeviceStates();
   };
   const panel=document.createElement('details');
   panel.dataset.mockPanel='true';
@@ -138,7 +142,7 @@ export function installMockHost() {
       return Object.assign({},...Object.entries(locales).filter(([path])=>path.endsWith(`/${language}.json`)).map(([,value])=>value));
     }
     switch(command) {
-      case 'ui_inited': await emit('loading_finished',null); return;
+      case 'ui_inited': await emit('loading_finished',null); await pushDeviceStates(); return;
       case 'get_machine_info': return {...scanTarget,h5_base_url:configs.api.h5_base_url,is_show_contact_tel:false};
       case 'get_setting_options': return {...options,device_id:scanTarget.device_id,currency_decimal:configs.payment.currency_decimal,is_lock:scenario==='locked'};
       case 'get_setting_configs': return clone(configs);
