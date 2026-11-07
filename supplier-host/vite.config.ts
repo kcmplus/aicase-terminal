@@ -32,7 +32,7 @@ export default defineConfig(async () => ({
   },
   optimizeDeps: {
     // 预构建 DIY 常用依赖，减轻首次进入编辑页的冷编译
-    include: ['gsap', 'qrcode', 'hammerjs', 'element-plus'],
+    include: ['gsap', 'qrcode', 'hammerjs', 'element-plus', 'element-plus/es'],
   },
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //

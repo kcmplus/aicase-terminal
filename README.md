@@ -39,6 +39,24 @@ npm run dev
 
 ## 编译与交付
 
+### 无核心包的浏览器调试
+
+安装依赖后，在仓库根目录运行：
+
+```sh
+npm ci
+npm --prefix supplier-host ci
+npm run dev:mock
+```
+
+打开 `http://127.0.0.1:1423/?lang=zh-CN`。右上角展开 **MOCK 调试**，可切换待机、订单队列、打印中、已出货、离线、缺货、锁定，并模拟新订单。按 F8 或连续点击右下角 8 次，用 `168168` 进入管理后台。MOCK 面板的有效扫码编号、场景切换和新增模拟订单会自动保存；后台设置点击保存后，和库存编辑一起保存在当前浏览器的本地存储中，刷新、返回或打开同一地址的新页面仍保留；点击“恢复默认模拟设置”可清除。二维码使用 `example.invalid`，不能用于真实下单；硬件操作只显示模拟提示，未覆盖的命令会明确报错。
+
+此命令只启动 Vite，不运行 Rust/Tauri，不需要 `phonecase-core`。mock 仅在 `DEV` 且 `VITE_MOCK=1` 时启用，正式构建不会加载 mock。供应商拿到集成 ZIP 后，也可在 `phonecase-diy-gy/` 执行 `npm ci` 和 `npm run dev:mock`。原生工程及真实核心的打包入口保持原样。
+
+扫码联调时，除了在后台设置 H5 地址，还需在 MOCK 面板填写后台已登记的 `device_id` / `shop_id` 并点“保存扫码目标”，然后重新扫码。例如已验证的设备/商家组合为 `401` / `146`。默认模拟编号 `900001` / `900001` 未在线上登记，直接用于真实 H5 会提示设备校验失败。编号保存在当前浏览器；该设置只改变扫码目标，不会让 mock 接收真实订单或控制打印。真实设备仍直接读取供应商宿主的设备与商家编号，不使用此覆盖设置。
+
+管理后台源码修改支持 Vite 热更新；修改根目录 `src/` 的 POPOMO 首页后，另开终端执行 `npm run build:embedded`，再刷新预览。浏览器回归测试使用 `npm run test:mock`（需要本地 Playwright 浏览器）。
+
 已配置 [Build supplier integration package](.github/workflows/build-terminal.yml)：推送 `main`、`v*` 标签、向 main 提交 PR 或手动运行时，安装主项目与 `supplier-host` 的锁定依赖、运行接口测试、执行 `npm run package:supplier`，成功后上传一个供应商集成 ZIP，保留 30 天。构建使用 Node.js 24，不需要供应商私有核心或 Rust 编译环境。
 
 下载位置：

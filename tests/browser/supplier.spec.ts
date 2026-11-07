@@ -97,7 +97,8 @@ test('eight touch-style pointer releases open maintenance; missing password uses
 });
 
 test('without a native host the production shell shows a waiting state, never sample data',async({page})=>{
-  await page.goto('/?preview=1&lang=en-US');
+  await page.goto('/?preview=1&mock=1&lang=en-US');
+  await expect(page.locator('[data-mock-panel]')).toHaveCount(0);
   await expect(page.locator('.popomo-terminal')).toContainText('Waiting for the terminal app');
   await expect(page.locator('.qr,.preview-bar')).toHaveCount(0);
   await page.keyboard.press('F8');
