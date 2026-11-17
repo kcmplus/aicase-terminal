@@ -1,15 +1,27 @@
-export type QueueOrder={previewImage:string;tradeNo:string;businessNumber:string;goodsId:number;model:string;payStatus:string;printStatus:string;status:string};
+export type QueueOrder={previewImage:string;tradeNo:string;businessNumber:string;goodsId:number|null;model:string;payStatus:string;printStatus:string;status:string};
 export function orderQueue(value:unknown):QueueOrder[]{
-  if(!Array.isArray(value)||value.length>5000)throw Error('invalid-order-list');
+  if(!Array.isArray(value))throw Error('invalid-order-list');
   const seen=new Set<string>();
   const text=(value:unknown,max=200)=>{if(typeof value!=='string'||!value.trim()||value.length>max)throw Error('invalid-order-list');return value;};
+  const optional=(value:unknown,max=200)=>typeof value==='string'&&value.length<=max?value:'';
   return value.map(value=>{
-    if(!value||typeof value!=='object')throw Error('invalid-order-list');
+    if(!value||typeof value!=='object'||Array.isArray(value))throw Error('invalid-order-list');
     const row=value as Record<string,unknown>,tradeNo=text(row.trade_no);
-    if(seen.has(tradeNo)||typeof row.goods_id!=='number'||!Number.isSafeInteger(row.goods_id)||row.goods_id<=0)throw Error('invalid-order-list');
+    if(seen.has(tradeNo))throw Error('invalid-order-list');
     seen.add(tradeNo);
-    return {previewImage:typeof row.effect_image==='string'&&row.effect_image.length<=8192?row.effect_image:'',tradeNo,businessNumber:text(row.business_number),goodsId:row.goods_id,model:typeof row.model_id==='string'?text(row.model_id):'',payStatus:text(row.pay_status),printStatus:text(row.print_status),status:text(row.status)};
+    // These are display fields, not authorization inputs. Missing metadata must not hide an order.
+    return {previewImage:optional(row.effect_image,8192),tradeNo,businessNumber:optional(row.business_number),goodsId:typeof row.goods_id==='number'&&Number.isSafeInteger(row.goods_id)&&row.goods_id>0?row.goods_id:null,model:optional(row.model_id),payStatus:optional(row.pay_status)||'unknown',printStatus:optional(row.print_status)||'unknown',status:optional(row.status)||'unknown'};
   }); // Preserve the host's sort order. Never sort by our own payment/creation timestamps.
+}
+export function readOrderQueue(value:unknown){
+  const orders:QueueOrder[]=[],seen=new Set<string>();
+  let rejected=0;
+  if(!Array.isArray(value))return {orders,available:false,total:0,rejected};
+  for(const item of value){
+    try{const row=orderQueue([item])[0];if(seen.has(row.tradeNo))throw Error('duplicate');seen.add(row.tradeNo);orders.push(row);}
+    catch{rejected++;}
+  }
+  return {orders,available:true,total:value.length,rejected};
 }
 export function queueState(order:QueueOrder){
   if(order.status==='refunded')return 'refunded';
@@ -29,6 +41,7 @@ export function queueGroups(orders:QueueOrder[],current:QueueOrder|null){
   if(current&&!rows.some(order=>order.tradeNo===current.tradeNo))rows.unshift(current);
   const active=rows.filter(order=>queueState(order)==='printing');
   return {
+    all:rows,
     active,
     waiting:rows.filter(order=>queueState(order)==='waiting'),
     confirmation:rows.filter(order=>queueState(order)==='confirmation'),

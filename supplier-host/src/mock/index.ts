@@ -1,20 +1,22 @@
 import {mockIPC, mockWindows} from '@tauri-apps/api/mocks';
 import {emit} from '@tauri-apps/api/event';
 import {isTauri} from '@tauri-apps/api/core';
+import logSession from './log-session.json';
 
 const locales = import.meta.glob('../../src-tauri/locales/{basic,default,admin,pc}/{en,zh}.json', {eager:true, import:'default'});
-const scenarios = ['ready','queue','printing','delivered','offline','empty','locked'] as const;
+const scenarios = ['log','ready','queue','printing','delivered','offline','empty','locked'] as const;
 type Scenario = typeof scenarios[number];
 type Row = Record<string, any>;
 
 /** Development-only browser host. No native calls or business network requests. */
 export function installMockHost() {
   if (!import.meta.env.DEV || import.meta.env.VITE_MOCK !== '1' || isTauri()) return;
-  let scenario:Scenario = 'ready';
+  let scenario:Scenario = 'log';
+  let logFrame=logSession.frames.length-1;
   let counter = 10;
   let extra:number[] = [];
   let fullscreen = false;
-  const options = {device_id:'900001',device_num:'MOCK-DEVICE',device_name:'POPOMO MOCK',device_password:'',language:'en',selectable_language:'en,zh',currency_symbol:'$',currency_decimal:2,is_lock:false};
+  const options = {device_id:logSession.machine.device_id,device_num:logSession.machine.device_num,device_name:logSession.machine.device_name,device_password:'',language:'en',selectable_language:'en,zh',currency_symbol:'$',currency_decimal:2,is_lock:false};
   let configs:Row = {
     app:{app_ver:'2.0.1',update_mode:'manual'},
     api:{h5_base_url:'https://example.invalid/mock',http_api_url:'https://example.invalid',ws_api_url:'wss://example.invalid',username:'mock',password:'',device_mac:'mock-device'},
@@ -32,7 +34,7 @@ export function installMockHost() {
   };
   let stock = [1,2].map(slot=>({slot,row:1,col:slot,material_id:`mock-${slot}`,goods_id:slot,price:10,count:5,disabled:false,model_id:`mock-${slot}`,model_name:`Mock phone ${slot}`,model_lang_id:`Mock phone ${slot}`,model_body_image:'',scanning:false}));
   const storageKey = 'popomo:dev-mock:v1';
-  let scanTarget = {device_id:options.device_id,shop_id:'900001'};
+  let scanTarget = {device_id:options.device_id,shop_id:logSession.machine.shop_id};
   const validId = (value:unknown):value is string => typeof value==='string' && /^\d{1,40}$/.test(value);
   let storageWarning = '';
   try {
@@ -52,7 +54,9 @@ export function installMockHost() {
       if(saved.scanTarget && validId(saved.scanTarget.device_id) && validId(saved.scanTarget.shop_id)) {
         scanTarget={device_id:saved.scanTarget.device_id,shop_id:saved.scanTarget.shop_id};
       }
-      if(scenarios.includes(saved.scenario))scenario=saved.scenario;
+      // Upgrade old synthetic defaults to the log dataset without deleting saved admin settings.
+      if(saved.logReplayVersion===1&&scenarios.includes(saved.scenario))scenario=saved.scenario;
+      if(Number.isInteger(saved.logFrame)&&saved.logFrame>=0&&saved.logFrame<logSession.frames.length)logFrame=saved.logFrame;
       if(Number.isSafeInteger(saved.counter)&&saved.counter>=10)counter=saved.counter;
       if(Array.isArray(saved.extra)&&saved.extra.every((id:unknown)=>Number.isSafeInteger(id)&&Number(id)>10)) {
         extra=[...new Set<number>(saved.extra)];
@@ -64,7 +68,7 @@ export function installMockHost() {
   }
   const persist = (nextConfigs=configs,nextStock=stock,nextTarget=scanTarget) => {
     try {
-      localStorage.setItem(storageKey,JSON.stringify({configs:nextConfigs,stock:nextStock,scanTarget:nextTarget,scenario,counter,extra}));
+      localStorage.setItem(storageKey,JSON.stringify({configs:nextConfigs,stock:nextStock,scanTarget:nextTarget,scenario,counter,extra,logFrame,logReplayVersion:1}));
     } catch (error) {
       status.textContent='保存失败：浏览器本地存储不可用或空间不足';
       throw error;
@@ -73,12 +77,14 @@ export function installMockHost() {
   const image = new URL('./case.svg?no-inline',import.meta.url).href;
   const order = (id:number,paid=true):Row => ({trade_no:`MOCK-ORDER-${id}`,business_number:`MOCK-${id}`,goods_id:1,model_id:'Mock phone',effect_image:image,pay_status:paid?'success':'idle',status:paid?'polling':'none',print_status:'idle'});
   const orders = () => {
+    if(scenario==='log')return structuredClone(logSession.frames[logFrame].orders);
     const rows:Row[] = ['queue','printing','delivered'].includes(scenario) ? [order(1),order(2,false),order(3)] : [];
     if(rows.length && scenario==='printing')rows[0].print_status='printing';
     if(rows.length && scenario==='delivered')Object.assign(rows[0],{print_status:'deliver_success',status:'success'});
     return [...rows,...extra.map(id=>order(id,false))];
   };
   const pushDeviceStates = async () => {
+    if(scenario==='log'){await emit('device_state_changed',logSession.frames[logFrame].devices);return;}
     for(const dtype of ['printer','gripper','netproxy'])await emit('device_state_changed',{dtype,state:scenario==='offline'?'disconnected':'online'});
   };
   const notify = async () => {
@@ -87,7 +93,7 @@ export function installMockHost() {
   };
   const panel=document.createElement('details');
   panel.dataset.mockPanel='true';
-  panel.style.cssText='position:fixed;top:8px;right:8px;z-index:99999;padding:10px;background:#fff4cc;color:#222;border:1px solid #a87900;border-radius:8px;font:14px sans-serif;max-width:330px;box-shadow:0 2px 10px #0003';
+  panel.style.cssText='position:fixed;bottom:8px;left:8px;z-index:99999;padding:10px;background:#fff4cc;color:#222;border:1px solid #a87900;border-radius:8px;font:14px sans-serif;max-width:330px;max-height:90vh;overflow:auto;box-shadow:0 2px 10px #0003';
   const title=document.createElement('summary');title.textContent='MOCK 调试 · 模拟数据';panel.append(title);
   const hint=document.createElement('p');hint.textContent='后台：F8 / 右下角点 8 次；密码 168168。设置保存在当前浏览器，刷新或新开页面仍保留。';panel.append(hint);
   const scanHint=document.createElement('p');scanHint.textContent='扫码联调需填写后台已登记的设备和商家编号。仅改变二维码目标，本页订单和设备状态仍为模拟。';panel.append(scanHint);
@@ -115,14 +121,26 @@ export function installMockHost() {
   shopInput.oninput=saveScanTarget;
   panel.append(saveTarget);
   const select=document.createElement('select');select.setAttribute('aria-label','Mock scenario');
-  const labels=['待机','订单队列','打印中','已出货','设备离线','库存为空','设备锁定'];
+  const labels=['真机日志（2 笔订单）','待机','订单队列','打印中','已出货','设备离线','库存为空','设备锁定'];
   scenarios.forEach((value,index)=>select.add(new Option(labels[index],value)));
   select.value=scenario;
   select.onchange=async()=>{
     const before={scenario,extra};scenario=select.value as Scenario;extra=[];
-    try {persist();status.textContent='模拟状态已自动保存到当前浏览器';await notify();}
+    try {persist();status.textContent='模拟状态已自动保存到当前浏览器';syncLogControls();window.dispatchEvent(new Event('popomo:mock-reset'));await notify();}
     catch {scenario=before.scenario;extra=before.extra;select.value=scenario;}
   };panel.append(select);
+  const logControls=document.createElement('div');panel.append(logControls);
+  const logHint=document.createElement('p');logHint.textContent='使用 2026-11-07 日志：2 笔订单、25 个节点。百分比未记录，图片未提供；后台库存是独立模拟值，不是日志库存。状态为日志重建，非真实 IPC 抓包。后台设置仍会保存。';logControls.append(logHint);
+  const logSelect=document.createElement('select');logSelect.setAttribute('aria-label','日志时间节点');logSelect.style.maxWidth='100%';
+  logSession.frames.forEach((frame,index)=>logSelect.add(new Option(`${frame.time} · ${frame.label}`,String(index))));logControls.append(logSelect);
+  const useLogIdentity=document.createElement('button');useLogIdentity.textContent='使用日志设备编号';
+  useLogIdentity.onclick=async()=>{deviceInput.value=logSession.machine.device_id;shopInput.value=logSession.machine.shop_id;await saveScanTarget();};logControls.append(useLogIdentity);
+  const syncLogControls=()=>{logControls.hidden=scenario!=='log';logSelect.value=String(logFrame);add.disabled=scenario==='log';};
+  logSelect.onchange=async()=>{
+    const before=logFrame;logFrame=Number(logSelect.value);
+    try{persist();status.textContent='日志节点已保存';window.dispatchEvent(new Event('popomo:mock-reset'));}
+    catch{logFrame=before;logSelect.value=String(before);}
+  };
   const add=document.createElement('button');add.textContent='模拟新订单';add.onclick=async()=>{
     extra.push(++counter);
     try {persist();status.textContent='模拟订单已自动保存到当前浏览器';await notify();}
@@ -131,6 +149,7 @@ export function installMockHost() {
   const reset=document.createElement('button');reset.textContent='恢复默认模拟设置';
   reset.onclick=()=>{localStorage.removeItem(storageKey);location.reload();};panel.append(reset);
   const status=document.createElement('p');status.dataset.mockStatus='true';status.textContent=storageWarning || '所有设备操作均为模拟';panel.append(status);
+  syncLogControls();
   document.body.append(panel);
 
   mockWindows('main');
@@ -156,9 +175,9 @@ export function installMockHost() {
         persist(nextConfigs);configs=nextConfigs;
         status.textContent='模拟设置已保存到当前浏览器';await notify();return;
       }
-      case 'get_device_info': return Object.fromEntries(['printer','gripper','netproxy'].map(dtype=>[dtype,{dtype,state:scenario==='offline'?'disconnected':'online'}]));
+      case 'get_device_info': if(scenario==='log')return clone(logSession.frames[logFrame].devices); return Object.fromEntries(['printer','gripper','netproxy'].map(dtype=>[dtype,{dtype,state:scenario==='offline'?'disconnected':'online'}]));
       case 'get_stock_tpl': return {slot_rows:1,slot_cols:2,slot_volume:10};
-      case 'get_stock_list': return stock.map(row=>({...row,count:scenario==='empty'?0:row.count}));
+      case 'get_stock_list': return stock.map(row=>({...row,count:scenario==='empty'?0:row.count})); // Admin inventory is synthetic, not reconstructed from the log.
       case 'get_stock_scanning': return false;
       case 'update_slot_item': {
         const nextStock=structuredClone(stock);
@@ -173,7 +192,7 @@ export function installMockHost() {
       case 'get_order_list': return orders();
       case 'get_order_size': return orders().length;
       case 'get_order_by_id': return orders().find(row=>row.trade_no===args.trade_no) || null;
-      case 'get_print_order': return ['printing','delivered'].includes(scenario)?orders()[0]:null;
+      case 'get_print_order': return scenario==='log'?orders().find(row=>row.trade_no===logSession.frames[logFrame].current)||null:['printing','delivered'].includes(scenario)?orders()[0]:null;
       case 'get_print_progress': return scenario==='printing'?{progress:46}:null;
       case 'is_fullscreen': return fullscreen;
       case 'set_fullscreen': fullscreen=Boolean(args.fullscreen);return;

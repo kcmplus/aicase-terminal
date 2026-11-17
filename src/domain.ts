@@ -1,4 +1,4 @@
-import {orderQueue,type QueueOrder} from './queue';
+import {orderQueue,readOrderQueue,type QueueOrder} from './queue';
 export type Language='zh-CN'|'en-US';
 export type ConnectionState='unknown'|'disconnected'|'connecting'|'connected'|'online';
 export type DeviceStates=Record<'printer'|'gripper'|'netproxy',ConnectionState>;
@@ -7,8 +7,9 @@ export type Snapshot={
   deviceId:string;shopId:string;storefront:string;name:string;number:string;
   contact:string;locked:boolean;showEntry:boolean;
   devices:DeviceStates;
-  modelCount:number;stockCount:number;printStatus:string|null;progress:number|null;
-  orders:QueueOrder[];ordersAvailable:boolean;currentOrder:QueueOrder|null;
+  modelCount:number;stockCount:number;stockAvailable:boolean;printStatus:string|null;progress:number|null;
+  printAvailable:boolean;progressAvailable:boolean;
+  orders:QueueOrder[];ordersAvailable:boolean;ordersTotal:number;ordersRejected:number;currentOrder:QueueOrder|null;
 };
 export type Command='get_machine_info'|'get_setting_options'|'get_setting_option_config'|'get_stock_list'|'get_print_order'|'get_print_progress'|'get_order_list'|'ui_inited';
 export interface Bridge{invoke(command:Command):Promise<unknown>;listen(event:string,callback:(payload?:unknown)=>void):Promise<()=>void>;}
@@ -38,15 +39,20 @@ export function snapshot(raw:Record<string,unknown>):Snapshot{
   const deviceId=id(machine.device_id),shopId=id(machine.shop_id);
   if(id(options.device_id)!==deviceId)throw Error('identity-changed');
   const devices=emptyDeviceStates();
-  if(!Array.isArray(raw.stock)||raw.stock.length>10000)throw Error('invalid-data');
-  let stockCount=0;const models=new Set<string>(),slots=new Set<number>();
-  for(const value of raw.stock){const row=record(value),slot=count(row.slot),quantity=count(row.count),disabled=bool(row.disabled),model=text(row.model_id,100);if(slots.has(slot))throw Error('invalid-data');slots.add(slot);if(!disabled&&quantity>0){if(!model)throw Error('invalid-data');stockCount+=quantity;models.add(model);}}
+  let stockCount=0,stockAvailable=true;const models=new Set<string>(),slots=new Set<number>();
+  try{
+    if(!Array.isArray(raw.stock)||raw.stock.length>10000)throw Error('invalid-data');
+    for(const value of raw.stock){const row=record(value),slot=count(row.slot),quantity=count(row.count),disabled=bool(row.disabled),model=text(row.model_id,100);if(slots.has(slot))throw Error('invalid-data');slots.add(slot);if(!disabled&&quantity>0){if(!model)throw Error('invalid-data');stockCount+=quantity;models.add(model);}}
+  }catch{stockAvailable=false;stockCount=0;models.clear();}
   let printStatus:string|null=null,progress:number|null=null,currentOrder:QueueOrder|null=null;
-  if(raw.order!==null){const order=record(raw.order);printStatus=text(order.print_status);if(!printStates.has(printStatus))throw Error('invalid-data');try{currentOrder=orderQueue([order])[0];}catch{/* Status remains useful without an identifiable order. */}}
-  if(raw.progress!==null&&printStatus!==null){const data=record(raw.progress);if(typeof data.progress!=='number'||!Number.isFinite(data.progress)||data.progress<0||data.progress>100)throw Error('invalid-data');progress=Math.round(data.progress);}
+  let printAvailable=true,progressAvailable=true;
+  try{if(raw.order!==null){const order=record(raw.order);try{currentOrder=orderQueue([order])[0];}catch{/* Preserve usable print state without an order ID. */}const state=text(order.print_status);if(!printStates.has(state))throw Error('invalid-data');printStatus=state;}}
+  catch{printAvailable=false;}
+  try{if(raw.progress!==null){const data=record(raw.progress);if(typeof data.progress!=='number'||!Number.isFinite(data.progress)||data.progress<0||data.progress>100)throw Error('invalid-data');if(printStatus!==null)progress=Math.round(data.progress);}}
+  catch{progressAvailable=false;}
   // Discard setting passwords, payment amounts and print originals; retain effect previews only.
-  let orders:QueueOrder[]=[],ordersAvailable=true;try{orders=orderQueue(raw.orders);}catch{ordersAvailable=false;}
-  return {deviceId,shopId,storefront:text(machine.h5_base_url,2048),name:text(options.device_name),number:text(options.device_num),contact:bool(machine.is_show_contact_tel)?text(machine.contact_tel,80):'',locked:bool(options.is_lock),showEntry:bool(features.show_h5_entry),devices,modelCount:models.size,stockCount,printStatus,progress,orders,ordersAvailable,currentOrder};
+  const list=readOrderQueue(raw.orders);
+  return {deviceId,shopId,storefront:text(machine.h5_base_url,2048),name:text(options.device_name),number:text(options.device_num),contact:bool(machine.is_show_contact_tel)?text(machine.contact_tel,80):'',locked:bool(options.is_lock),showEntry:bool(features.show_h5_entry),devices,modelCount:models.size,stockCount,stockAvailable,printStatus,progress,printAvailable,progressAvailable,orders:list.orders,ordersAvailable:list.available,ordersTotal:list.total,ordersRejected:list.rejected,currentOrder};
 }
 export function designUrl(data:Pick<Snapshot,'storefront'|'deviceId'|'shopId'>,language:Language):string{
   id(data.deviceId);id(data.shopId);

@@ -32,7 +32,7 @@
 
 订阅 `loading_finished`、`machine_info_changed`、`device_state_changed`、`setting_options_changed`、`setting_configs_changed`、`setting_lock_changed`、`stock_info_changed`、`product_info_changed`、`order_info_changed`、`order_print_started`、`order_print_finished`、`order_print_status`、`order_print_progress`、`print_warning`。`device_state_changed` 按 DeviceItem 校验并合并单个设备状态（也接受 DeviceItem 映射），不发起查询；其他数据变更事件仍触发重读。硬件状态未通知时显示“等待状态通知”，不影响有效二维码。
 
-读取命令 10 秒超时，不会永久卡住界面。身份或读取故障收起二维码；下一次事件或 15 秒轮询恢复。身份/配置变更时清除旧二维码并丢弃并发旧结果；库存变更保留扫码入口。硬件状态不参与轮询；高频进度通知合并读取。宿主初始化失败时每 15 秒自动重试。语言由构建配置或启动参数决定，页面没有折叠或操作入口。
+读取命令 10 秒超时，不会永久卡住界面。身份或扫码配置读取故障收起二维码；下一次事件或 15 秒轮询恢复。身份/配置刷新期间保留上次已验证二维码，读到新值后替换；校验失败则清除，丢弃并发旧结果。库存和打印读取失败不影响二维码。硬件状态不参与轮询；高频进度通知合并读取。宿主初始化失败时每 15 秒自动重试。语言由构建配置或启动参数决定，页面没有折叠或操作入口。
 
 ## 必须确认的手机订单闭环
 

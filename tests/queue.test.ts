@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {orderQueue,queueState,queueGroups,OrderArrivals} from '../src/queue.ts';
+import {orderQueue,readOrderQueue,queueState,queueGroups,OrderArrivals} from '../src/queue.ts';
 import {fixture,previewBridge} from '../src/preview.ts';
 import {TerminalController,type View} from '../src/controller.ts';
 import type {Bridge} from '../src/domain.ts';
@@ -16,7 +16,16 @@ test('queue preserves supplier sorting and strips unrelated photos and payment d
 });
 test('duplicate IDs and malformed native lists are rejected',()=>{
  const row=(fixture('queue').get_order_list as any[])[0];
- for(const value of [null,{},[row,row],[{...row,trade_no:''}],[{...row,goods_id:'82'}]])assert.throws(()=>orderQueue(value));
+ for(const value of [null,{},[row,row],[{...row,trade_no:''}]])assert.throws(()=>orderQueue(value));
+});
+test('display keeps orders with incomplete metadata and isolates invalid rows',()=>{
+ const row=(fixture('queue').get_order_list as any[])[0];
+ const result=readOrderQueue([row,null,{trade_no:'metadata-missing'},row,{...row,trade_no:'refunded',status:'refunded'}]);
+ assert.equal(result.total,5);assert.equal(result.rejected,2);assert.equal(result.available,true);
+ assert.deepEqual(result.orders.map(row=>row.tradeNo),[row.trade_no,'metadata-missing','refunded']);
+ assert.equal(queueState(result.orders[1]),'unknown');assert.equal(result.orders[1].goodsId,null);
+ assert.equal(queueGroups(result.orders,null).all.length,3);
+ assert.equal(readOrderQueue(Array.from({length:5001},(_,i)=>({...row,trade_no:String(i)}))).orders.length,5001);
 });
 test('order list reads fail independently of the QR identity and inventory',async()=>{
  const fixtureData=fixture('queue');let view:View|undefined;
@@ -36,6 +45,7 @@ test('dashboard excludes unconfirmed and finished orders from waiting and preser
  assert.equal(queueGroups(rows.filter(row=>row.tradeNo!==current.tradeNo),current).active.length,1);
  const finished=rows.map(row=>({...row,status:'refunded'}));
  assert.equal(queueGroups(finished,null).waiting.length,0);
+ assert.equal(queueGroups(finished,null).all.length,finished.length);
 });
 test('progress is suppressed when the device switches orders during its read',async()=>{
  const data=fixture('printing');let reads=0,view:View|undefined;

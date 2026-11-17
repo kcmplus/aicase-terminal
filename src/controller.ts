@@ -1,5 +1,6 @@
 import {events,snapshot,deviceStateUpdate,emptyDeviceStates,type Bridge,type Snapshot} from './domain';
-export type View={data:Snapshot|null;loading:boolean;error:string|null;updatedAt:number|null;warning?:string|null};
+import {debugValue,type Diagnostics} from './diagnostics';
+export type View={data:Snapshot|null;loading:boolean;error:string|null;updatedAt:number|null;warning?:string|null;diagnostics?:Diagnostics};
 function timeout<T>(operation:Promise<T>,milliseconds:number):Promise<T>{
   return new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('timeout')),milliseconds);operation.then(value=>{clearTimeout(timer);resolve(value);},error=>{clearTimeout(timer);reject(error);});});
 }
@@ -10,8 +11,21 @@ export class TerminalController{
   private warning:string|null=null;
   private devices=emptyDeviceStates();
   private retryTimer:ReturnType<typeof setTimeout>|undefined;
-  constructor(private bridge:Bridge,private render:(view:View)=>void,private interval=15000,private deadline=10000){}
-  private publish(view:View){if(!this.stopped){this.view=view;this.render({...view,warning:this.warning});}}
+  private diagnostics:Diagnostics={commands:{},events:[],ordersTotal:null};
+  constructor(private bridge:Bridge,private render:(view:View)=>void,private interval=15000,private deadline=10000,private debug=false){}
+  private publish(view:View){if(!this.stopped){this.view=view;this.render({...view,warning:this.warning,...(this.debug?{diagnostics:structuredClone(this.diagnostics)}:{})});}}
+  private async invoke(command:Parameters<Bridge['invoke']>[0]){
+    const start=Date.now();
+    if(this.debug)this.diagnostics.commands[command]={status:'pending',elapsedMs:0,value:null};
+    try{
+      const value=await timeout(this.bridge.invoke(command),this.deadline);
+      if(this.debug){this.diagnostics.commands[command]={status:'success',elapsedMs:Date.now()-start,value:debugValue(value)};if(command==='get_order_list')this.diagnostics.ordersTotal=Array.isArray(value)?value.length:null;}
+      return value;
+    }catch(error){
+      if(this.debug){this.diagnostics.commands[command]={status:'error',elapsedMs:Date.now()-start,value:debugValue(error)};if(command==='get_order_list')this.diagnostics.ordersTotal=null;}
+      throw error;
+    }finally{if(this.debug)this.publish(this.view);}
+  }
   async start(){
     if(this.stopped||this.starting||this.initialized)return;
     clearTimeout(this.retryTimer);this.starting=true;
@@ -20,6 +34,7 @@ export class TerminalController{
       for(const event of events){
         const pending=this.bridge.listen(event,(payload)=>{
           if(this.stopped)return;
+          if(this.debug){this.diagnostics.events.unshift({name:event,at:Date.now(),value:debugValue(payload)});this.diagnostics.events.length=Math.min(20,this.diagnostics.events.length);this.publish(this.view);}
           if(event==='device_state_changed'){
             const update=deviceStateUpdate(payload);
             if(!Object.keys(update).length)return;
@@ -32,14 +47,14 @@ export class TerminalController{
             void this.refresh();
           }else if(event==='order_print_progress')void this.refresh();
           else {
-            this.invalidate(!['machine_info_changed','setting_options_changed','setting_configs_changed','setting_lock_changed'].includes(event));
+            this.invalidate();
           }
         });
         let accepted=false;
         try{const off=await timeout(pending,this.deadline);accepted=true;if(this.stopped){off();return;}this.subscriptions.push(off);}
         catch(error){void pending.then(off=>{if(!accepted)off();},()=>{});throw error;}
       }
-      await timeout(this.bridge.invoke('ui_inited'),this.deadline);
+      await this.invoke('ui_inited');
       if(this.stopped)return;
       this.initialized=true;
       this.timer=setInterval(()=>{void this.refresh();},this.interval);
@@ -52,9 +67,11 @@ export class TerminalController{
     }finally{this.starting=false;}
   }
   async retry(){if(this.initialized)await this.refresh();else await this.start();}
-  private invalidate(keepDisplay=false){
+  setDebug(enabled:boolean){this.debug=enabled;if(!enabled)this.diagnostics={commands:{},events:[],ordersTotal:null};this.publish(this.view);if(enabled)void this.refresh();}
+  private invalidate(){
     this.generation++;
-    this.publish({data:keepDisplay?this.view.data:null,loading:true,error:null,updatedAt:keepDisplay?this.view.updatedAt:null});
+    // Keep the last verified display until the refreshed identity/settings are validated.
+    this.publish({data:this.view.data,loading:true,error:null,updatedAt:this.view.updatedAt});
     if(this.initialized)void this.refresh();
   }
   async refresh(){
@@ -65,23 +82,25 @@ export class TerminalController{
       do{
         current=this.generation;
         try{
-          const invoke=(command:Parameters<Bridge['invoke']>[0])=>timeout(this.bridge.invoke(command),this.deadline);
+          const invoke=(command:Parameters<Bridge['invoke']>[0])=>this.invoke(command);
           // Progress has no trade_no. Bracket the read to avoid attaching it to a different job.
           const printRead=async()=>{
-            const before=await invoke('get_print_order');
-            const progress=await invoke('get_print_progress');
+            const before=await invoke('get_print_order').catch(()=>undefined);
+            const progress=await invoke('get_print_progress').catch(()=>undefined);
             const order=await invoke('get_print_order');
             const first=(before as {trade_no?:unknown}|null)?.trade_no;
             const last=(order as {trade_no?:unknown}|null)?.trade_no;
             return {order,progress:typeof first==='string'&&first===last?progress:null};
           };
           const [machine,options,features,stock,printing,orders]=await Promise.all([
-            invoke('get_machine_info'),invoke('get_setting_options'),invoke('get_setting_option_config'),invoke('get_stock_list'),printRead(),invoke('get_order_list').catch(()=>null)]);
+            invoke('get_machine_info'),invoke('get_setting_options'),invoke('get_setting_option_config'),invoke('get_stock_list').catch(()=>undefined),printRead().catch(()=>({order:undefined,progress:undefined})),invoke('get_order_list').catch(()=>null)]);
           const {order,progress}=printing;
           const data=snapshot({machine,options,features,stock,order,progress,orders});
           data.devices={...this.devices};
+          if(this.debug&&current===this.generation)this.diagnostics.commands.display_validation={status:'success',elapsedMs:0,value:{ordersTotal:data.ordersTotal,ordersRejected:data.ordersRejected,stockAvailable:data.stockAvailable,printAvailable:data.printAvailable}};
           if(current===this.generation)this.publish({data,loading:false,error:null,updatedAt:Date.now()});
-        }catch{
+        }catch(error){
+          if(this.debug&&current===this.generation)this.diagnostics.commands.display_validation={status:'error',elapsedMs:0,value:debugValue(error)};
           if(current===this.generation)this.publish({data:null,loading:false,error:'connection-failed',updatedAt:null});
         }
       }while(!this.stopped&&current!==this.generation);

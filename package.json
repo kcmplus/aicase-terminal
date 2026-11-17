@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 4180 --strictPort",
+    "dev:direct": "node scripts/dev-direct.mjs",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1 --port 4181 --strictPort",
     "test": "node --import tsx --test tests/*.test.ts",
@@ -12,10 +13,13 @@
     "build:embedded": "tsc --noEmit && vite build --config vite.embedded.config.ts",
     "dev:supplier": "npm run build:embedded && npm --prefix supplier-host run dev",
     "dev:mock": "npm run build:embedded && npm --prefix supplier-host run dev:mock",
+    "dev:device": "npm run build:embedded && npm --prefix supplier-host run dev:device --",
     "build:supplier": "npm run build:embedded && npm --prefix supplier-host run build",
     "package:supplier": "npm run build:supplier && python3 scripts/package_supplier.py",
+    "package:supplier:debug": "npm run build:embedded && npm --prefix supplier-host run build:debug && python3 scripts/package_supplier.py --debug",
     "test:supplier": "playwright test",
-    "test:mock": "playwright test --config playwright.mock.config.ts"
+    "test:mock": "playwright test --config playwright.mock.config.ts",
+    "build:log-replay": "tsc --noEmit && node scripts/build_log_replay.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "2.11.1",

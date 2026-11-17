@@ -13,13 +13,14 @@ test('native identity and stock are validated; sensitive supplier fields are dis
  assert.ok(!JSON.stringify(result).includes('secret'));assert.ok(!JSON.stringify(result).includes('hidden'));
  (input.options as Record<string,unknown>).device_id='400';assert.throws(()=>snapshot(input),/identity-changed/);
 });
-test('malformed counts, progress and duplicate slots fail closed',()=>{
+test('invalid inventory and progress do not hide a verified QR; invalid controls still fail closed',()=>{
  for(const change of [
   (r:ReturnType<typeof raw>)=>{(r.stock as any[])[0].count=-1;},
   (r:ReturnType<typeof raw>)=>{(r.stock as any[])[1].slot=1;},
-  (r:ReturnType<typeof raw>)=>{(r.options as any).is_lock='false';},
-  (r:ReturnType<typeof raw>)=>{r.order={print_status:'printing'};r.progress={progress:101};},
- ]){const r=raw();change(r);assert.throws(()=>snapshot(r));}
+ ]){const r=raw();change(r);const data=snapshot(r);assert.equal(data.stockAvailable,false);assert.equal(unavailable(data),null);}
+ const progress=raw();progress.order={print_status:'printing'};progress.progress={progress:101};
+ assert.equal(snapshot(progress).progressAvailable,false);assert.equal(snapshot(progress).progress,null);
+ const controls=raw();(controls.options as any).is_lock='false';assert.throws(()=>snapshot(controls));
 });
 test('QR links use the configured host H5 address and native identity, discarding unrelated parameters',()=>{
  const input=raw();(input.machine as any).h5_base_url='https://store.example/shop?token=private#other';
@@ -96,6 +97,28 @@ test('listeners precede handshake, stock updates keep scan data while refreshing
   await until(()=>views.at(-1)?.data?.stockCount===0);
   assert.ok(host.calls.every(command=>command==='ui_inited'||command.startsWith('get_')));
  }finally{app.dispose();}assert.equal(host.listeners.size,0);
+});
+test('inventory and printing reads can fail without removing orders or QR',async()=>{
+ for(const failed of ['get_stock_list','get_print_order','get_print_progress'] as const){
+  const host=new Host();host.data=fixture('printing');const invoke=host.invoke.bind(host);host.invoke=command=>command===failed?Promise.reject(Error('unavailable')):invoke(command);
+  let view:View|undefined;const app=new TerminalController(host,next=>{view=next;},60000);
+  try{await app.start();assert.equal(view?.error,null);assert.equal(view?.data?.deviceId,'401');assert.equal(view?.data?.orders.length,6);assert.equal(unavailable(view!.data!),null);
+   if(failed==='get_stock_list')assert.equal(view?.data?.stockAvailable,false);
+   if(failed==='get_print_order')assert.equal(view?.data?.printAvailable,false);
+   if(failed==='get_print_progress')assert.equal(view?.data?.progressAvailable,false);
+  }finally{app.dispose();}
+ }
+});
+test('unchanged configuration notifications preserve QR until verified replacement',async()=>{
+ const host=new Host(),views:View[]=[];const app=new TerminalController(host,next=>views.push(next),60000);
+ try{await app.start();const original=host.invoke.bind(host);let release:(value:unknown)=>void=()=>{};
+  host.invoke=command=>command==='get_machine_info'?new Promise(resolve=>{release=resolve;}):original(command);
+  host.emit('machine_info_changed');assert.equal(views.at(-1)?.data?.deviceId,'401');assert.equal(views.at(-1)?.loading,true);
+  release(host.data.get_machine_info);await until(()=>!views.at(-1)?.loading);
+  assert.equal(views.at(-1)?.data?.deviceId,'401');
+  host.emit('setting_options_changed');release({...host.data.get_machine_info as object,device_id:'402'});
+  await until(()=>views.at(-1)?.error==='connection-failed');assert.equal(views.at(-1)?.data,null);
+ }finally{app.dispose();}
 });
 test('identity change during read cannot publish old device QR',async()=>{
  const host=new Host(),views:View[]=[];const original=host.invoke.bind(host);

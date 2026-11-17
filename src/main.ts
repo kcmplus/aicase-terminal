@@ -9,5 +9,5 @@ if(import.meta.env.DEV&&!bridge&&new URLSearchParams(location.search).get('previ
   const scenario=new URLSearchParams(location.search).get('scenario')||'printing';
   if(['ready','queue','printing','offline','empty','locked','delivered','error'].includes(scenario))sample.setScenario(scenario as import('./preview').Scenario);
 }
-const terminal=mountTerminal(document.querySelector<HTMLDivElement>('#app')!,{bridge:bridge??undefined,preview});
+const terminal=mountTerminal(document.querySelector<HTMLDivElement>('#app')!,{bridge:bridge??undefined,preview,debug:import.meta.env.DEV});
 if(import.meta.hot)import.meta.hot.dispose(()=>terminal.dispose());

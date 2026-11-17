@@ -10,7 +10,7 @@ async function mockHost(page:Page,password:string|null='739251') {
   data.get_setting_options={...data.get_setting_options as object,device_password:password};
   data.get_stock_list=[{slot:1,row:1,col:1,material_id:'test',goods_id:1,price:0,count:5,disabled:false,model_id:'test',model_name:'Test',state:'idle'}];
   await page.addInitScript(({data,translations})=>{
-    const state={data,calls:[] as string[],listeners:{} as Record<number,{event:string;handler:number}>};
+    const state={data,calls:[] as string[],failures:{} as Record<string,string>,listeners:{} as Record<number,{event:string;handler:number}>};
     let next=1;const callbacks=new Map<number,(event:unknown)=>void>();
     const w=window as any;w.__hostTest=state;w.isTauri=true;
     w.__hostTest.emit=(event:string,payload:unknown)=>{
@@ -23,6 +23,7 @@ async function mockHost(page:Page,password:string|null='739251') {
       convertFileSrc(){return '';},
       async invoke(command:string,args:Record<string,any>={}){
         state.calls.push(command);
+        if(state.failures[command])throw Error(state.failures[command]);
         if(command==='plugin:event|listen'){const id=next++;state.listeners[id]={event:args.event,handler:args.handler};return id;}
         if(command==='plugin:event|unlisten'){delete state.listeners[args.eventId];return;}
         if(command==='get_language_data')return translations;
@@ -96,6 +97,7 @@ test('hardware states and warnings are visible without hiding a valid QR',async(
   });
   await page.goto('/?lang=en-US');
   await expect(page.locator('.qr')).toBeVisible();
+  await page.locator('[data-status-toggle]').click();
   await expect(page.locator('[data-device="printer"]')).toContainText('Disconnected');
   await expect(page.locator('[data-device="gripper"]')).toContainText('Connecting');
   await expect(page.locator('[data-device="netproxy"]')).toContainText('Connected');
@@ -132,6 +134,7 @@ test('QR remains visible while awaiting the first device notification',async({pa
   await page.addInitScript(()=>{(window as any).__hostTest.data.get_device_info={};});
   await page.goto('/?lang=en-US');
   await expect(page.locator('.qr')).toBeVisible();
+  await page.locator('[data-status-toggle]').click();
   for(const key of ['printer','gripper','netproxy'])await expect(page.locator(`[data-device="${key}"]`)).toContainText('Awaiting status');
   await page.evaluate(()=>{(window as any).__hostTest.emit('device_state_changed',{dtype:'gripper',state:'online'});});
   await expect(page.locator('[data-device="gripper"]')).toContainText('Online');
@@ -182,4 +185,97 @@ test('legacy credentials cannot enable payment handoff or cloud polling on the d
   expect(calls.filter(x=>x==='get_device_info')).toEqual([]);
   expect(requests).toEqual([]);
   expect(calls.filter(x=>x==='get_order_list').length).toBeGreaterThan(1);
+});
+
+test('all returned order states and counts are visible despite malformed rows and failed stock reads',async({page})=>{
+  await page.clock.install();await mockHost(page);
+  const row=(fixture('queue').get_order_list as any[])[0];
+  await page.addInitScript(row=>{
+    const host=(window as any).__hostTest;
+    host.failures.get_stock_list='stock temporarily unavailable';
+    host.failures.get_print_order='print temporarily unavailable';
+    host.data.get_order_list=[{...row,trade_no:'ORDER-WAITING'},{...row,trade_no:'ORDER-COMPLETED',status:'success'},{...row,trade_no:'ORDER-REFUNDED',status:'refunded'},null,{trade_no:'ORDER-MISSING-META'}];
+  },row);
+  await page.goto('/?lang=en-US');
+  await expect(page.locator('.qr')).toBeVisible();
+  await expect(page.locator('.order-counts')).toHaveText('Returned 5 · Readable 4 · Invalid / duplicate 1');
+  await page.locator('[data-sheet=orders]').click();
+  await expect(page.locator('.waiting-list')).toContainText('Completed');
+  await expect(page.locator('.waiting-list')).toContainText('Refunded');
+  await page.locator('[data-sheet-close]').first().click();
+  await page.locator('[data-status-toggle]').click();
+  await expect(page.locator('.device-status-notice')).toContainText('Inventory unavailable');
+  await page.clock.fastForward(8000);
+  await page.keyboard.press('Escape');
+  await page.locator('[data-sheet=orders]').click();
+  await expect(page.locator('.waiting-list')).toContainText('Status pending');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.qr')).toBeVisible();
+});
+
+test('configuration refresh retains QR while pending, but explicit lock still hides it',async({page})=>{
+  await mockHost(page);await page.goto('/?lang=en-US');await expect(page.locator('.qr')).toBeVisible();
+  await page.evaluate(()=>{
+    const w=window as any,original=w.__TAURI_INTERNALS__.invoke;
+    w.__TAURI_INTERNALS__.invoke=(command:string,args:any)=>command==='get_machine_info'?new Promise(resolve=>{w.__hostTest.release=()=>resolve(original(command,args));}):original(command,args);
+    w.__hostTest.emit('machine_info_changed',{});
+  });
+  await expect(page.locator('.qr')).toBeVisible();
+  await page.evaluate(()=>{(window as any).__hostTest.release();});
+  await expect(page.locator('.qr')).toBeVisible();
+  await page.evaluate(()=>{
+    const host=(window as any).__hostTest;host.data.get_setting_options.is_lock=true;host.emit('setting_lock_changed',{});
+  });
+  await page.evaluate(()=>{(window as any).__hostTest.release();});
+  await expect(page.locator('.qr')).toHaveCount(0);
+  await page.locator('[data-status-toggle]').click();
+  await expect(page.locator('.device-status-notice')).toContainText('Station locked');
+});
+
+test('debug build shows raw interface results, order count, errors and events with credentials masked',async({page})=>{
+  test.skip(process.env.TEST_DEBUG_PANEL!=='1','Runs against the dedicated debug build');
+  await mockHost(page);await page.addInitScript(()=>{const host=(window as any).__hostTest;host.failures.get_stock_list='stock temporarily unavailable';});
+  await page.goto('/?lang=en-US');await expect(page.locator('.qr')).toBeVisible();
+  const panel=page.locator('.debug-panel');await expect(panel).toHaveCount(0);
+  await page.locator('[data-status-toggle]').click();await page.locator('[data-debug-toggle]').check();await expect(panel).toBeVisible();
+  await expect(panel).toContainText('get_order_list');await expect(panel).toContainText('订单接口：0 条');
+  await expect(panel).toContainText('stock temporarily unavailable');await expect(panel).toContainText('[redacted]');await expect(panel).not.toContainText('739251');
+  await page.evaluate(()=>{(window as any).__hostTest.emit('device_state_changed',{dtype:'gripper',state:'connecting'});});
+  await expect(panel).toContainText('connecting');
+  await page.setViewportSize({width:393,height:852});
+  expect(await page.locator('.popomo-terminal').evaluate(host=>{const root=host.shadowRoot!.querySelector<HTMLElement>('#app')!;return root.scrollWidth<=root.clientWidth;})).toBe(true);
+  await page.screenshot({path:'release/qa/supplier-debug-data.png',fullPage:true});
+});
+
+test('V6 guides and order sheet remain read-only, live and keyboard accessible',async({page})=>{
+  await mockHost(page);
+  const sample=fixture('printing');
+  await page.addInitScript(sample=>{Object.assign((window as any).__hostTest.data,sample);},sample);
+  await page.goto('/?lang=zh-CN');
+  await expect(page.locator('.qr')).toBeVisible();
+  await expect(page.locator('.current-job')).toContainText('R-0001');
+  await expect(page.locator('.progress-number')).toContainText('46');
+  const qr=await page.locator('.qr').innerHTML();
+  await page.locator('[data-sheet=existing]').click();
+  await expect(page.locator('dialog.sheet')).toContainText('已付订单无需重复付款');
+  await expect(page.locator('dialog.sheet')).toContainText('在手机上确认到场');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('[data-sheet=existing]')).toBeFocused();
+  await page.locator('[data-sheet=orders]').click();
+  await expect(page.locator('.waiting-list li')).toHaveCount(6);
+  await page.locator('[data-sheet-control=back]').focus();
+  await page.evaluate(()=>{
+    const host=(window as any).__hostTest;
+    host.data.get_order_list.push({trade_no:'LIVE-ORDER',model_id:'New model',print_status:'idle',pay_status:'idle'});
+    host.emit('order_info_changed',{});
+  });
+  await expect(page.locator('.waiting-list')).toContainText('New model');
+  await expect(page.locator('[data-sheet-control=back]')).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.locator('[data-sheet-control=close]')).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('[data-sheet=orders]')).toBeFocused();
+  expect(await page.locator('.qr').innerHTML()).toBe(qr);
+  const calls=await page.evaluate(()=>(window as any).__hostTest.calls as string[]);
+  expect(calls.filter(x=>/^(save_|start_|select_order_payment|create_order)/.test(x))).toEqual([]);
 });
