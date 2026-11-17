@@ -6,12 +6,16 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "dev:mock": "cross-env VITE_MOCK=1 VITE_SKIN_ID=default vite --host 127.0.0.1",
+    "dev:device": "node scripts/dev-device.mjs",
+    "dev:device:ui": "cross-env VITE_MOCK=0 VITE_SKIN_ID=default vite --host 127.0.0.1",
     "build": "vue-tsc --noEmit && vite build",
+    "build:debug": "cross-env VITE_DEVICE_DEBUG=1 VITE_MOCK=0 npm run build",
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:dev:default": "cross-env VITE_SKIN_ID=default SKIN_ID=default tauri dev",
     "tauri:build": "tauri build",
+    "tauri:build:debug": "cross-env VITE_DEVICE_DEBUG=1 VITE_MOCK=0 VITE_SKIN_ID=default SKIN_ID=default tauri build",
     "tauri:build:default": "cross-env VITE_SKIN_ID=default SKIN_ID=default tauri build"
   },
   "dependencies": {

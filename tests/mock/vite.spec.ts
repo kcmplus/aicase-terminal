@@ -25,6 +25,7 @@ test('Vite mock boots without injected host, supports scenarios and administrati
   await expect.poll(()=>page.locator('.order-preview-image').first().evaluate((image:HTMLImageElement)=>image.naturalWidth)).toBeGreaterThan(0);
   await page.getByLabel('Mock scenario').selectOption('offline');
   await expect(page.locator('.qr')).toBeVisible();
+  await page.locator('[data-status-toggle]').click();
   for(const device of ['printer','gripper','netproxy'])await expect(page.locator(`[data-device="${device}"]`)).toContainText('Disconnected');
   await page.getByLabel('Mock scenario').selectOption('ready');
   await expect(page.locator('.qr')).toBeVisible();
@@ -71,7 +72,7 @@ test('Vite mock boots without injected host, supports scenarios and administrati
   await page.evaluate(()=>localStorage.setItem('unrelated-setting','keep'));
   await page.locator('[data-mock-panel] summary').click();
   await page.getByRole('button',{name:'恢复默认模拟设置'}).click();
-  await expect.poll(()=>page.evaluate(async()=>(window as any).__TAURI_INTERNALS__?.invoke('get_machine_info'))).toMatchObject({device_id:'900001',shop_id:'900001',h5_base_url:'https://example.invalid/mock'});
+  await expect.poll(()=>page.evaluate(async()=>(window as any).__TAURI_INTERNALS__?.invoke('get_machine_info'))).toMatchObject({device_id:'789',shop_id:'351',h5_base_url:'https://example.invalid/mock'});
   expect(await page.evaluate(()=>localStorage.getItem('unrelated-setting'))).toBe('keep');
   expect(errors).toEqual([]);
   expect(remote).toEqual([]);
@@ -101,5 +102,23 @@ test('mock inputs, scenario and added orders survive refresh without a save clic
   await page.getByRole('button',{name:'恢复默认模拟设置'}).click();
   await expect(page.locator('.qr')).toBeVisible();
   await expect(page.locator('.progress-number')).toHaveCount(0);
-  expect(await page.evaluate(async()=>(window as any).__TAURI_INTERNALS__.invoke('get_order_list'))).toEqual([]);
+  expect(await page.evaluate(async()=>(window as any).__TAURI_INTERNALS__.invoke('get_order_list'))).toHaveLength(2);
+});
+
+test('local mock defaults to real log orders and persists timeline while retaining admin settings',async({page})=>{
+  await page.goto('/?lang=zh-CN');await expect(page.locator('.qr')).toBeVisible();
+  await expect(page.locator('.order-counts')).toContainText('接口返回 2');
+  expect(await page.evaluate(async()=>(window as any).__TAURI_INTERNALS__.invoke('get_order_list'))).toEqual(expect.arrayContaining([expect.objectContaining({trade_no:'WM2611071000245410',status:'success'}),expect.objectContaining({trade_no:'WM2611071024144428',status:'success'})]));
+  await page.locator('[data-mock-panel] summary').click();await expect(page.getByLabel('Mock scenario')).toHaveValue('log');
+  await page.getByLabel('日志时间节点').selectOption('0');await expect(page.locator('.order-counts')).toContainText('接口返回 0');
+  await page.locator('[data-status-toggle]').click();
+  await expect(page.locator('[data-device="netproxy"]')).toContainText('等待状态通知');
+  await page.getByLabel('日志时间节点').selectOption('24');await expect(page.locator('.order-counts')).toContainText('接口返回 2');
+  await page.locator('[data-status-toggle]').click();
+  await expect(page.locator('[data-device="netproxy"]')).toContainText('已连接');
+  await expect(page.locator('[data-device="printer"]')).toContainText('等待状态通知');
+  await page.reload();await expect(page.locator('.order-counts')).toContainText('接口返回 2');
+  await page.locator('[data-mock-panel] summary').click();await expect(page.getByLabel('日志时间节点')).toHaveValue('24');
+  await page.getByLabel('Mock scenario').selectOption('offline');await page.locator('[data-status-toggle]').click();await expect(page.locator('[data-device="printer"]')).toContainText('离线');
+  await page.getByLabel('Mock scenario').selectOption('log');await page.locator('[data-status-toggle]').click();await expect(page.locator('[data-device="printer"]')).toContainText('等待状态通知');
 });

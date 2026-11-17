@@ -20,7 +20,8 @@ test('every live display command is a matching zero-argument supplier invoke',()
  const command=source.statements.find(node=>ts.isTypeAliasDeclaration(node)&&node.name.text==='Command') as ts.TypeAliasDeclaration;
  assert.ok(ts.isUnionTypeNode(command.type));
  const names=command.type.types.map(node=>{assert.ok(ts.isLiteralTypeNode(node)&&ts.isStringLiteral(node.literal));return node.literal.text;});
- assert.equal(names.length,9);
+ assert.equal(names.length,8);
+ assert.ok(!names.includes('get_device_info'));
  for(const name of names){
   const definition=functions.get(name);assert.ok(definition,`Supplier command missing: ${name}`);assert.equal(definition.parameters.length,0);
   let matchingInvoke=false;

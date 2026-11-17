@@ -4,8 +4,9 @@ import {mountPopomo} from '@/popomo/terminal.js';
 
 const host=ref<HTMLElement|null>(null);
 let terminal:ReturnType<typeof mountPopomo>|undefined;
-onMounted(()=>{if(host.value)terminal=mountPopomo(host.value);});
-onUnmounted(()=>terminal?.dispose());
+const mount=()=>{terminal?.dispose();if(host.value)terminal=mountPopomo(host.value,{debug:import.meta.env.DEV||import.meta.env.VITE_DEVICE_DEBUG==='1'});};
+onMounted(()=>{mount();if(import.meta.env.DEV&&import.meta.env.VITE_MOCK==='1')window.addEventListener('popomo:mock-reset',mount);});
+onUnmounted(()=>{terminal?.dispose();window.removeEventListener('popomo:mock-reset',mount);});
 </script>
 
 <template><div ref="host" class="popomo-terminal" /></template>

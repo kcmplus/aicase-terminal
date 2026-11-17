@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {designUrl,snapshot,unavailable,events,type Bridge,type Command} from '../src/domain.ts';
+import {designUrl,snapshot,unavailable,events,deviceStateUpdate,emptyDeviceStates,type Bridge,type Command} from '../src/domain.ts';
 import {fixture} from '../src/preview.ts';
 import {TerminalController,type View} from '../src/controller.ts';
 
 function raw(scenario:Parameters<typeof fixture>[0]='ready'){
- const f=fixture(scenario);return {machine:f.get_machine_info,device:f.get_device_info,options:f.get_setting_options,features:f.get_setting_option_config,stock:f.get_stock_list,order:f.get_print_order,progress:f.get_print_progress};
+ const f=fixture(scenario);return {machine:f.get_machine_info,options:f.get_setting_options,features:f.get_setting_option_config,stock:f.get_stock_list,order:f.get_print_order,progress:f.get_print_progress};
 }
 test('native identity and stock are validated; sensitive supplier fields are discarded',()=>{
  const input=raw();Object.assign(input.machine as object,{contact_person:'private',contact_tel:'hidden'});Object.assign(input.options as object,{device_password:'secret'});
@@ -13,14 +13,14 @@ test('native identity and stock are validated; sensitive supplier fields are dis
  assert.ok(!JSON.stringify(result).includes('secret'));assert.ok(!JSON.stringify(result).includes('hidden'));
  (input.options as Record<string,unknown>).device_id='400';assert.throws(()=>snapshot(input),/identity-changed/);
 });
-test('malformed states, counts, progress and duplicate slots fail closed',()=>{
+test('invalid inventory and progress do not hide a verified QR; invalid controls still fail closed',()=>{
  for(const change of [
-  (r:ReturnType<typeof raw>)=>{(r.device as any).printer.state='ready';},
   (r:ReturnType<typeof raw>)=>{(r.stock as any[])[0].count=-1;},
   (r:ReturnType<typeof raw>)=>{(r.stock as any[])[1].slot=1;},
-  (r:ReturnType<typeof raw>)=>{(r.options as any).is_lock='false';},
-  (r:ReturnType<typeof raw>)=>{r.order={print_status:'printing'};r.progress={progress:101};},
- ]){const r=raw();change(r);assert.throws(()=>snapshot(r));}
+ ]){const r=raw();change(r);const data=snapshot(r);assert.equal(data.stockAvailable,false);assert.equal(unavailable(data),null);}
+ const progress=raw();progress.order={print_status:'printing'};progress.progress={progress:101};
+ assert.equal(snapshot(progress).progressAvailable,false);assert.equal(snapshot(progress).progress,null);
+ const controls=raw();(controls.options as any).is_lock='false';assert.throws(()=>snapshot(controls));
 });
 test('QR links use the configured host H5 address and native identity, discarding unrelated parameters',()=>{
  const input=raw();(input.machine as any).h5_base_url='https://store.example/shop?token=private#other';
@@ -49,6 +49,47 @@ class Host implements Bridge{
  emit(event:string,payload?:unknown){this.listeners.get(event)?.(payload);}
 }
 async function until(condition:()=>boolean){for(let i=0;i<100&&!condition();i++)await new Promise(resolve=>setTimeout(resolve,1));assert.ok(condition());}
+test('device events accept supplier items and full maps, ignoring invalid and unrelated fields',()=>{
+ assert.deepEqual(deviceStateUpdate({dtype:'gripper',state:'connecting'}),{gripper:'connecting'});
+ assert.deepEqual(deviceStateUpdate(fixture().get_device_info),{printer:'online',gripper:'online',netproxy:'online'});
+ for(const payload of [null,[],{},'online',{dtype:'mdb',state:'online'},{dtype:'printer',state:'ready'},{printer:{dtype:'gripper',state:'online'}}])assert.deepEqual(deviceStateUpdate(payload),{});
+});
+test('device states are event-only, merge independently and survive ordinary refreshes',async()=>{
+ const host=new Host(),views:View[]=[];const app=new TerminalController(host,view=>views.push(view),60000);
+ try{
+  await app.start();assert.deepEqual(views.at(-1)?.data?.devices,emptyDeviceStates());
+  const calls=host.calls.length;
+  host.emit('device_state_changed',fixture().get_device_info);
+  host.emit('device_state_changed',{dtype:'gripper',state:'disconnected'});
+  assert.deepEqual(views.at(-1)?.data?.devices,{printer:'online',gripper:'disconnected',netproxy:'online'});
+  assert.equal(host.calls.length,calls);assert.equal(unavailable(views.at(-1)!.data!),null);
+  const count=views.length;host.emit('device_state_changed',{dtype:'gripper',state:'broken'});assert.equal(views.length,count);
+  await app.refresh();assert.equal(views.at(-1)?.data?.devices.gripper,'disconnected');
+  host.emit('machine_info_changed');await until(()=>views.at(-1)?.loading===false);
+  assert.equal(views.at(-1)?.data?.devices.gripper,'disconnected');
+  assert.ok(!host.calls.some(command=>String(command)==='get_device_info'));
+  const callback=host.listeners.get('device_state_changed')!;app.dispose();
+  const finalCount=views.length;callback({dtype:'gripper',state:'online'});assert.equal(views.length,finalCount);
+ }finally{app.dispose();}
+});
+test('startup device notifications and updates during reads are retained without another query',async()=>{
+ const host=new Host(),views:View[]=[];const original=host.invoke.bind(host);
+ let held=false,release:(value:unknown)=>void=()=>{};
+ host.invoke=async command=>{
+  const value=await original(command);
+  if(command==='ui_inited')host.emit('device_state_changed',fixture().get_device_info);
+  if(command==='get_machine_info'&&!held){held=true;return new Promise(resolve=>{release=resolve;});}
+  return value;
+ };
+ const app=new TerminalController(host,view=>views.push(view),60000);
+ try{
+  const started=app.start();await until(()=>held);
+  host.emit('device_state_changed',{dtype:'gripper',state:'connecting'});
+  release(host.data.get_machine_info);await started;
+  assert.deepEqual(views.at(-1)?.data?.devices,{printer:'online',gripper:'connecting',netproxy:'online'});
+  assert.ok(!host.calls.some(command=>String(command)==='get_device_info'));
+ }finally{app.dispose();}
+});
 test('listeners precede handshake, stock updates keep scan data while refreshing, cleanup removes handlers',async()=>{
  const host=new Host(),views:View[]=[];const app=new TerminalController(host,view=>views.push(view),60000);
  try{await app.start();assert.equal(views.at(-1)?.data?.stockCount,9);
@@ -56,6 +97,28 @@ test('listeners precede handshake, stock updates keep scan data while refreshing
   await until(()=>views.at(-1)?.data?.stockCount===0);
   assert.ok(host.calls.every(command=>command==='ui_inited'||command.startsWith('get_')));
  }finally{app.dispose();}assert.equal(host.listeners.size,0);
+});
+test('inventory and printing reads can fail without removing orders or QR',async()=>{
+ for(const failed of ['get_stock_list','get_print_order','get_print_progress'] as const){
+  const host=new Host();host.data=fixture('printing');const invoke=host.invoke.bind(host);host.invoke=command=>command===failed?Promise.reject(Error('unavailable')):invoke(command);
+  let view:View|undefined;const app=new TerminalController(host,next=>{view=next;},60000);
+  try{await app.start();assert.equal(view?.error,null);assert.equal(view?.data?.deviceId,'401');assert.equal(view?.data?.orders.length,6);assert.equal(unavailable(view!.data!),null);
+   if(failed==='get_stock_list')assert.equal(view?.data?.stockAvailable,false);
+   if(failed==='get_print_order')assert.equal(view?.data?.printAvailable,false);
+   if(failed==='get_print_progress')assert.equal(view?.data?.progressAvailable,false);
+  }finally{app.dispose();}
+ }
+});
+test('unchanged configuration notifications preserve QR until verified replacement',async()=>{
+ const host=new Host(),views:View[]=[];const app=new TerminalController(host,next=>views.push(next),60000);
+ try{await app.start();const original=host.invoke.bind(host);let release:(value:unknown)=>void=()=>{};
+  host.invoke=command=>command==='get_machine_info'?new Promise(resolve=>{release=resolve;}):original(command);
+  host.emit('machine_info_changed');assert.equal(views.at(-1)?.data?.deviceId,'401');assert.equal(views.at(-1)?.loading,true);
+  release(host.data.get_machine_info);await until(()=>!views.at(-1)?.loading);
+  assert.equal(views.at(-1)?.data?.deviceId,'401');
+  host.emit('setting_options_changed');release({...host.data.get_machine_info as object,device_id:'402'});
+  await until(()=>views.at(-1)?.error==='connection-failed');assert.equal(views.at(-1)?.data,null);
+ }finally{app.dispose();}
 });
 test('identity change during read cannot publish old device QR',async()=>{
  const host=new Host(),views:View[]=[];const original=host.invoke.bind(host);

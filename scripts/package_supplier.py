@@ -6,12 +6,18 @@ import json
 import os
 import subprocess
 import zipfile
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--debug', action='store_true', help='Label a package built with the on-screen debug panel')
+args = parser.parse_args()
 
 root = Path(__file__).resolve().parents[1]
 source = root / 'supplier-host'
 required = ['dist/index.html', 'src/popomo/terminal.js', 'package-lock.json',
             'src-tauri/Cargo.toml', 'src/skins/default/pages/Home.vue',
-            'Makefile', 'build.ps1', '.gitignore', '.vscode/extensions.json']
+            'Makefile', 'build.ps1', '.gitignore', '.vscode/extensions.json',
+            'scripts/dev-device.mjs', 'src-tauri/tauri.device-dev.json']
 for name in required:
     if not (source / name).is_file():
         raise SystemExit(f'Missing {name}; run npm run build:supplier first.')
@@ -22,7 +28,8 @@ def git(*args):
 commit = git('rev-parse', 'HEAD')
 dirty = bool(git('status', '--porcelain'))
 version = json.loads((root / 'package.json').read_text())['version']
-name = f'aicase-terminal-supplier-display-only-{version}-{commit[:12]}{"-dirty" if dirty else ""}.zip'
+variant = 'supplier-debug' if args.debug else 'supplier-display-only'
+name = f'aicase-terminal-{variant}-{version}-{commit[:12]}{"-dirty" if dirty else ""}.zip'
 output = root / 'release' / name
 output.parent.mkdir(exist_ok=True)
 excluded = {'node_modules', 'target', 'backup', 'gen', '.git', 'preview-images'}
@@ -42,7 +49,7 @@ for path in sorted(source.rglob('*')):
         raise SystemExit(f'Unexpected sensitive or generated file: {rel}')
     files['phonecase-diy-gy/' + rel.as_posix()] = path.read_bytes()
 
-for name in ['SUPPLIER_HANDOFF.md', 'CLOUD_CONNECTION.md', 'CLOUD_ORDER_FLOW.md']:
+for name in ['SUPPLIER_HANDOFF.md', 'CLOUD_CONNECTION.md', 'CLOUD_ORDER_FLOW.md', 'UI_V6.md']:
     files['phonecase-diy-gy/docs/' + name] = (root / 'docs' / name).read_bytes()
 metadata = {
     'package': 'aicase-terminal-supplier', 'version': version,
@@ -50,6 +57,7 @@ metadata = {
     'built_at': datetime.now(timezone.utc).isoformat(),
     'kind': 'integrated-ui-and-supplier-host-entry',
     'requires_supplier_core': True,
+    'debug_panel': args.debug,
     'terminal_mode': 'display-only; H5 owns customer confirmation',
     'original_supplier_archive': json.loads((source / 'SOURCE.json').read_text()),
     'sha256': {name: hashlib.sha256(data).hexdigest() for name, data in files.items()},
